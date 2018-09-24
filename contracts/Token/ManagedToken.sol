@@ -2,29 +2,21 @@ pragma solidity ^0.4.25;
 
 import "electusvoting/contracts/Token/FreezableToken.sol";
 import "electusprotocol/contracts/Protocol/IElectusProtocol.sol";
-import "openzeppelin-solidity/contracts/access/roles/MinterRole.sol";
 
 
-contract ManagedToken is FreezableToken, MinterRole {
+contract ManagedToken is FreezableToken {
     string public name;
     string public symbol;
     uint8 public decimals = 18;
     uint public tokensUnderGovernance;
     IERC1261 public vaultMembership;
-    bool private _mintingFinished = false;
 
-    event MintingFinished();
-
-    constructor(string _name, string _symbol, address _vaultAddress) public {
+    constructor(string _name, string _symbol, address _vaultAddress, uint _totalMintableSupply) public {
         name = _name;
         symbol = _symbol;
+        totalMintableSupply = _totalMintableSupply;
         vaultMembership = IERC1261(_vaultAddress);
         //Add crowdsale address as minter addMinter        
-    }
-
-    modifier onlyBeforeMintingFinished() {
-        require(!_mintingFinished);
-        _;
     }
 
     function getTokensUnderGovernance() public view returns (uint) {
@@ -45,21 +37,9 @@ contract ManagedToken is FreezableToken, MinterRole {
         return super.transferFrom(_from, _to, _value);
     }
 
-    function mintingFinished() public view returns(bool) {
-        return _mintingFinished;
-    }
-
-    function mint(address _to, uint256 _amount, bool _hasGovernance) public onlyMinter 
-        onlyBeforeMintingFinished returns (bool) {
+    function mint(address _to, uint256 _amount, bool _hasGovernance) public returns (bool) {
         if (_hasGovernance) tokensUnderGovernance += _amount;
-        _mint(_to, _amount);
-        return true;
-    }
-
-    function finishMinting() public onlyMinter onlyBeforeMintingFinished returns (bool) {
-        _mintingFinished = true;
-        emit MintingFinished();
-        return true;
+        return super.mint(_to, _amount);
     }
 
     function burn(uint256 _value) public {

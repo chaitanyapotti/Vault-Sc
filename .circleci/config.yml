@@ -2,7 +2,7 @@ version: 2
 job_common: &job_common
   docker:
     - image: circleci/node:8.11.3
-  working_directory: ~/ElectusProtocol
+  working_directory: ~/Vault-Sc
 step_save_cache: &step_save_cache
   save_cache:
     key: dependency-cache-{{ checksum "package.json" }}
@@ -36,7 +36,7 @@ jobs:
       - <<: *step_restore_cache
       - <<: *step_setup_global_packages
       - run:
-          name: "Run Tests for Electus Protocol"
+          name: "Run Tests for Vault Smart Contracts"
           command: npm run test
       - <<: *step_save_cache
       # Save test results

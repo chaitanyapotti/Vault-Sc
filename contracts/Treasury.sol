@@ -1,6 +1,6 @@
 pragma solidity ^0.4.25;
 
-import "./Token/ManagedToken.sol";
+import "./Token/DaicoToken.sol";
 import "./Interfaces/ICrowdSaleTreasury.sol";
 import "./Interfaces/ICrowdSale.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -15,31 +15,53 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         Killed
     }
 
-    uint public constant INITIAL_TAP = 74421773; //wei/sec corresponds to approx 500 ether/month
+    uint public constant INITIAL_TAP = 14844355; //wei/sec corresponds to approx 100 ether/month
     uint public currentTap; //wei/sec
     TreasuryState public state;
-    ManagedToken public erc20Token;
+    DaicoToken public erc20Token;
     address public crowdSaleAddress;
     uint public firstWithdrawAmount;
     address public teamAddress;
     uint public initalFundRelease;
     address public lockedTokenAddress;
-    mapping(address => uint) public contributions;
-    uint public lastTapIncrementedAt;
+    uint public pivotTime;
 
-    event RefundContributor(address tokenHolder, uint256 amountWei);
-    event RefundHolder(address tokenHolder, uint256 amountWei, uint256 tokenAmount);
+    event RefundCrowdSaleFail(address tokenHolder, uint256 amountWei);
+    event RefundKill(address tokenHolder, uint256 amountWei, uint256 tokenAmount);
+    event RoundOneStarted();
+    event RoundOneFinished();
+    event DaicoRefunded();
     
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
         address _lockedTokenAddress) public {
-        erc20Token = ManagedToken(_erc20Token);        
+        erc20Token = DaicoToken(_erc20Token);        
         teamAddress = _teamAddress;
         initalFundRelease = _initalFundRelease;
         lockedTokenAddress = _lockedTokenAddress;
     }
 
     modifier onlyCrowdSale() {
-        require(msg.sender == crowdSaleAddress);
+        require(msg.sender == crowdSaleAddress, "Not crowdsale address");
+        _;
+    }
+
+    modifier onlyDuringCrowdSale() {
+        require(state == TreasuryState.CrowdSale, "Not crowdsale phase");
+        _;
+    }
+
+    modifier onlyDuringCrowdSaleRefund() {
+        require(state == TreasuryState.CrowdSaleRefund, "Not crowdsale refund phase");
+        _;
+    }
+
+    modifier onlyDuringGovernance() {
+        require(state == TreasuryState.Governance, "Not Governance phase");
+        _;
+    }
+
+    modifier onlyWhenKilled() {
+        require(state == TreasuryState.Killed, "Not yet killed phase");
         _;
     }
 
@@ -50,61 +72,54 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
 
     function onR1Start() external onlyCrowdSale {
         state = TreasuryState.CrowdSale;
+        emit RoundOneStarted();
     }
 
     function onCrowdSaleR1End() external onlyCrowdSale {
         state = TreasuryState.Governance;
         firstWithdrawAmount = initalFundRelease;
-        //lastWithdrawTime = now;
-        lastTapIncrementedAt = now;
+        pivotTime = now;
         currentTap = INITIAL_TAP;
+        emit RoundOneFinished();
     }    
 
-    function enableCrowdsaleRefund() external onlyCrowdSale {
-        require(state == TreasuryState.CrowdSale);
+    function enableCrowdsaleRefund() external onlyCrowdSale onlyDuringCrowdSale {
         state = TreasuryState.CrowdSaleRefund;
+        burnLockedTokens();
+        emit DaicoRefunded();
     }
 
-    function refundCrowdsaleContributor() external {
-        require(state == TreasuryState.CrowdSaleRefund, "Can't refund now");
-        require(contributions[msg.sender] > 0, "Hasn't contributed");
-        uint256 refundAmount = contributions[msg.sender];
-        contributions[msg.sender] = 0;
+    function refundBySoftcapFail() external onlyDuringCrowdSaleRefund {
         //This contract address needs to be authorized to be able to burn
-        erc20Token.burnFrom(msg.sender, erc20Token.balanceOf(msg.sender)); //Need to check here
-        msg.sender.transfer(refundAmount);
-        emit RefundContributor(msg.sender, refundAmount);
+        refundContributor(msg.sender);
+        emit RefundCrowdSaleFail(msg.sender, refundAmount);
     }
 
-    function forceRefundCrowdsaleContributor(address _contributor) external onlyOwner {
-        require(state == TreasuryState.CrowdSaleRefund);
-        require(contributions[_contributor] > 0, "Hasn't contributed");
-        uint256 refundAmount = contributions[_contributor];
-        contributions[_contributor] = 0;
+    function forceRefundBySoftcapFail(address _contributor) external onlyOwner onlyDuringCrowdSaleRefund {
+        refundContributor(_contributor);
         //This contract address needs to be authorized to be able to burn
-        erc20Token.burnFrom(_contributor, erc20Token.balanceOf(_contributor)); //Need to check here
-        _contributor.transfer(refundAmount);
-        emit RefundContributor(_contributor, refundAmount);
+        emit RefundCrowdSaleFail(_contributor, refundAmount);
     }
 
-    function processContribution(address contributor) external payable {
+    function processContribution() external payable {
         require(state == TreasuryState.CrowdSale || state == TreasuryState.Governance);
-        uint totalContribution = SafeMath.add(contributions[contributor], msg.value);
-        contributions[contributor] = totalContribution;
     }
 
-    function refundTokenHolder() public {
-        require(state == TreasuryState.Killed);
+    function refundByKill() public onlyWhenKilled {
+        refundContributor(msg.sender);
+        emit RefundKill(msg.sender, refundAmount, tokenBalance);
+    }
 
-        uint tokenBalance = erc20Token.balanceOf(msg.sender);
-        require(tokenBalance > 0);
+    function burnLockedTokens() internal onlyDuringCrowdSaleRefund {
+        erc20Token.burnFrom(lockedTokenAddress, erc20Token.balanceOf(lockedTokenAddress));
+    }
+
+    function refundContributor(address _contributor) internal {
+        uint tokenBalance = erc20Token.balanceOf(_contributor);
+        require(tokenBalance > 0, "Zero token balance");
         uint refundAmount = SafeMath.div(SafeMath.mul(tokenBalance, address(this).balance), erc20Token.totalSupply());
-        require(refundAmount > 0);
-
-        erc20Token.burnFrom(msg.sender, tokenBalance);
-        msg.sender.transfer(refundAmount);
-
-        emit RefundHolder(msg.sender, refundAmount, tokenBalance);
+        require(refundAmount > 0, "No refund amount available");
+        erc20Token.burnFrom(_contributor, tokenBalance);
+        _contributor.transfer(refundAmount);
     }
-
 }

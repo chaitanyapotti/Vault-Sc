@@ -5,7 +5,7 @@ import "./Poll/BoundPoll.sol";
 import "./Poll/UnBoundPoll.sol";
 
 
-contract PollManager is Treasury {
+contract PollFactory is Treasury {
 
     struct XfrData {
         address xfrPollAddress;
@@ -15,20 +15,23 @@ contract PollManager is Treasury {
     uint public constant KILL_POLL_DURATION = 7689600; //seconds (89 days)
     uint public constant XFR_POLL_DURATION = 2592000; //seconds (30 days)
     uint public constant TAP_INCREMENT_FACTOR = 150;
+
     address[8] public killPollAddresses;
+    uint8[8] public killPollStartDates;
     address public vaultMembershipAddress;
     XfrData[2] public xfrPollData;
     IERC1261 public vaultMembership;
     BoundPoll public currentKillPoll;
     UnBoundPoll public tapPoll;
+
     uint public currentKillPollIndex;
     uint public killAcceptancePercent;
     uint public tapAcceptancePercent;
     uint public xfrRejectionPercent;
     uint public minQuorum;
     uint public capPercent;
-    uint public tapWithdrawableAmount;
-    uint8[8] public killPollStartDates;
+    uint public splineHeightAtPivot;
+    uint public withdrawnTillNow;
 
     event RefundStarted(address _startedBy);
     event Withdraw(uint amountWei);
@@ -38,10 +41,10 @@ contract PollManager is Treasury {
     uint _minQuorum, uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress) 
         public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress) {
             //check for cap maybe
-            //require(_minQuorum > ) 0.5 * total vault members maybe?
-            require(_capPercent < 10, "Cap weight Should not be more than 10 %");
-            require(_killAcceptancePercent > 60, "Kill Acceptance should be more than 60 %");
-            require(_xfrRejectionPercent < 60, "At least 60% must reject xfr");
+            // cap is 10^2 multiplied to actual percentage - already in poll
+            require(_killAcceptancePercent < 85, "Kill Acceptance should be less than 85 %");
+            require(_xfrRejectionPercent < 40, "At least 60% must accept xfr");
+            require(_minQuorum < 5000, "Cannot require more than 5000 to kill");
             require(_tapAcceptancePercent > 60, "At least 60% must accept tap increment");
             minQuorum = _minQuorum;
             capPercent = _capPercent;
@@ -66,29 +69,22 @@ contract PollManager is Treasury {
         
             currentKillPoll = BoundPoll(killPollAddresses[0]);
             currentKillPollIndex = 0;
-        //create all kill polls
-        //dynamically create otp
-        //dynamically create tap poll
         }
 
     function executeKill() external {
         require(currentKillPoll.hasPollEnded(), "Poll hasn't ended yet");
-        //initial high cap weight after r1 - reduces as more rounds come by
         if (canKill()) {
             state = TreasuryState.Killed;
             erc20Token.burnFrom(lockedTokenAddress, erc20Token.balanceOf(lockedTokenAddress));
             emit RefundStarted(msg.sender);
-        } else if (currentKillPoll.hasPollEnded()) {
+        } else {
             currentKillPollIndex += 1;
             currentKillPoll = BoundPoll(killPollAddresses[currentKillPollIndex]);
         }
     }
 
-    function createTapIncrementPoll(uint _startTime) external onlyOwner {
-        require(state == TreasuryState.Governance, 
-            "Can't create tap poll after treasury is killed or governance hasn't started");
+    function createTapIncrementPoll() external onlyOwner onlyDuringGovernance {        
         require(address(tapPoll) == 0, "Tap Increment poll already exists");
-        require(_startTime > now, "Start time must be after now");
         address[] memory protocol = new address[](1);
         protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
@@ -97,25 +93,29 @@ contract PollManager is Treasury {
             stringToBytes32("Vault"), 
             stringToBytes32("Tap Increment Poll"), 
             stringToBytes32("Token Proportional Capped")
-            , _startTime, 0);
+            , now + 1, 0);
     }
 
-    function increaseTap() external onlyOwner {
+    function increaseTap() external onlyOwner onlyDuringGovernance {
         if (canIncreaseTap()) {
-            tapWithdrawableAmount = SafeMath.add(tapWithdrawableAmount, SafeMath.mul(SafeMath.sub(now, 
-                lastTapIncrementedAt), currentTap));
-            lastTapIncrementedAt = now;
+            splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
+                pivotTime), currentTap));
+            pivotTime = now;
             currentTap = SafeMath.div(SafeMath.mul(TAP_INCREMENT_FACTOR, currentTap), 100);
             delete tapPoll;
         }
     }
 
-    function createXfr(uint _startTime, uint8 _pollNumber, uint _amountToWithdraw) external onlyOwner {
-        require(state == TreasuryState.Governance,
-            "Can't create Xfr after treasury is killed or governance hasn't started");
-        require(_startTime > now, "Start Time must be after now");
-        require(_pollNumber <= 1, "Max 2 polls allowed at a time");
-        require(_amountToWithdraw <= SafeMath.div(address(this).balance, 4), "Can't withdraw > 25% of balance");
+    function createXfr(uint _amountToWithdraw) external onlyOwner 
+        onlyDuringGovernance {
+        uint _pollNumber = 0;
+        XfrData storage pollData0 = xfrPollData[0];
+        if (pollData0.xfrPollAddress != address(0)) {
+            XfrData storage pollData1 = xfrPollData[1];
+            require(pollData1.xfrPollAddress == address(0), "Max 2 polls allowed at a time");
+            _pollNumber = 1;
+        }
+        require(_amountToWithdraw <= SafeMath.div(address(this).balance, 10), "Can't withdraw > 10% of balance");
         XfrData storage pollData = xfrPollData[_pollNumber];
         require(pollData.xfrPollAddress == address(0), "Poll running/funds not withdrawn");
         address[] memory protocol = new address[](1);
@@ -126,51 +126,52 @@ contract PollManager is Treasury {
                 stringToBytes32("Vault"), 
                 stringToBytes32("Exceptional Fund Request"), 
                 stringToBytes32("Token Proportional Capped Bound"),
-                _startTime, XFR_POLL_DURATION);
+                now + 1, XFR_POLL_DURATION);
 
         pollData.xfrPollAddress = xfrPoll;
         pollData.amountRequested = _amountToWithdraw;
     }
 
-    function withdrawXfrAmount(uint8 _pollNumber) external onlyOwner {
-        XfrData storage pollData = xfrPollData[_pollNumber];
-        uint withdrawlAmount = pollData.amountRequested;
-        BoundPoll xfrPoll = BoundPoll(pollData.xfrPollAddress);
-        if (canWithdrawXfr(_pollNumber)) {
-            pollData.xfrPollAddress = address(0);
-            pollData.amountRequested = 0;
-            teamAddress.transfer(withdrawlAmount);
-        } else if (xfrPoll.hasPollEnded()) {
-            pollData.xfrPollAddress = address(0);
-            pollData.amountRequested = 0; 
+    function withdrawXfrAmount() external onlyOwner onlyDuringGovernance {
+        uint withdrawlAmount = 0;
+        for (var index = 0; index < xfrPollData.length; index++) {
+            XfrData storage pollData = xfrPollData[index];
+            BoundPoll xfrPoll = BoundPoll(pollData.xfrPollAddress);
+            if (xfrPoll.hasPollEnded()) {
+                if (canWithdrawXfr(index)) {
+                    withdrawlAmount = SafeMath.add(withdrawlAmount, pollData.amountRequested);  
+                }
+                pollData.xfrPollAddress = address(0);
+                pollData.amountRequested = 0;                    
+            }            
         }
-
+        require(withdrawlAmount > 0, "No Withdrawable amount");
+        teamAddress.transfer(withdrawlAmount);
     }
 
-    function withdrawAmount(uint _amount) external onlyOwner {
+    function withdrawAmount(uint _amount) external onlyOwner onlyDuringGovernance {
         require(canWithdraw(), "cannot withdraw now");
         require(_amount < address(this).balance, "Insufficient funds");
-        tapWithdrawableAmount = SafeMath.add(tapWithdrawableAmount, SafeMath.mul(SafeMath.sub(now, 
-                lastTapIncrementedAt), currentTap));
-        require(tapWithdrawableAmount >= _amount, "Not allowed");
-        lastTapIncrementedAt = now;
-        tapWithdrawableAmount = SafeMath.sub(tapWithdrawableAmount, _amount);
+        splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
+                pivotTime), currentTap));
+        require(_amount <= splineHeightAtPivot - withdrawnTillNow, "Not allowed");
+        pivotTime = now;
+        splineHeightAtPivot = SafeMath.sub(splineHeightAtPivot, _amount);
+        withdrawnTillNow += _amount;
         teamAddress.transfer(_amount);
     }
 
-    function firstWithdraw() external onlyOwner {
-        require(firstWithdrawAmount > 0 && state == TreasuryState.Governance);
+    function firstWithdraw() external onlyOwner onlyDuringGovernance {
+        require(firstWithdrawAmount > 0);
         uint amount = firstWithdrawAmount;
         firstWithdrawAmount = 0;
+        require(amount < SafeMath.div(address(this).balance, 10), "Can't withdraw such amount");
         teamAddress.transfer(amount);
         emit Withdraw(amount);
     }
 
     function canIncreaseTap() public view returns (bool) {
-        require(state == TreasuryState.Governance, 
-            "Can't increase tap after treasury is killed or governance hasn't started");
         require(address(tapPoll) != address(0), "No tap poll exists yet");
-        require(tapPoll.getVoterCount(0) > minQuorum, "Enough people haven't voted");
 
         if (SafeMath.div(tapPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
             tapAcceptancePercent && !canKill()) 
@@ -180,13 +181,10 @@ contract PollManager is Treasury {
     }
 
     function canWithdrawXfr(uint8 _pollNumber) public view returns (bool) {
-        require(state == TreasuryState.Governance, "Can't withdraw after treasury is killed");
         require(_pollNumber <= 1, "Max 2 polls allowed at a time");
         XfrData storage pollData = xfrPollData[_pollNumber];
         require(pollData.xfrPollAddress != address(0), "No poll is running at that number");
         BoundPoll xfrPoll = BoundPoll(pollData.xfrPollAddress);
-        require(xfrPoll.hasPollEnded(), "Poll hasn't ended yet");
-        require(xfrPoll.getVoterCount(0) > minQuorum, "Enough people haven't voted");
 
         if (SafeMath.div(xfrPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
             xfrRejectionPercent && !canKill()) 
@@ -195,19 +193,17 @@ contract PollManager is Treasury {
         return false;
     }
 
-    function canKill() public view returns (bool) {
-        require(state == TreasuryState.Governance, "Can't kill yet");        
-        require(currentKillPoll.getVoterCount(0) > minQuorum, "Enough people haven't voted");
-        if (SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
-            killAcceptancePercent) 
+    function canKill() public view returns (bool) onlyDuringGovernance {  
+        if (((SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
+            killAcceptancePercent) && (currentKillPoll.getVoterCount(0) > minQuorum)) || 
+            (SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) == 100)) 
             return true;
 
         return false;
     }
 
     function canWithdraw() public view returns (bool) {
-        require(state == TreasuryState.Governance, "can't withdraw after treasury is killed");
-        if (address(currentKillPoll) != address(0) && canKill()) {
+        if (canKill()) {
             return false;
         }
         return true;

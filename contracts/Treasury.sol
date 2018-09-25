@@ -2,7 +2,6 @@ pragma solidity ^0.4.25;
 
 import "./Token/DaicoToken.sol";
 import "./Interfaces/ICrowdSaleTreasury.sol";
-import "./Interfaces/ICrowdSale.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -26,8 +25,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     address public lockedTokenAddress;
     uint public pivotTime;
 
-    event RefundCrowdSaleFail(address tokenHolder, uint256 amountWei);
-    event RefundKill(address tokenHolder, uint256 amountWei, uint256 tokenAmount);
+    event RefundSent(address tokenHolder, uint256 amountWei, uint256 tokenAmount);
     event RoundOneStarted();
     event RoundOneFinished();
     event DaicoRefunded();
@@ -92,13 +90,11 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     function refundBySoftcapFail() external onlyDuringCrowdSaleRefund {
         //This contract address needs to be authorized to be able to burn
         refundContributor(msg.sender);
-        emit RefundCrowdSaleFail(msg.sender, refundAmount);
     }
 
     function forceRefundBySoftcapFail(address _contributor) external onlyOwner onlyDuringCrowdSaleRefund {
         refundContributor(_contributor);
         //This contract address needs to be authorized to be able to burn
-        emit RefundCrowdSaleFail(_contributor, refundAmount);
     }
 
     function processContribution() external payable {
@@ -107,7 +103,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
 
     function refundByKill() public onlyWhenKilled {
         refundContributor(msg.sender);
-        emit RefundKill(msg.sender, refundAmount, tokenBalance);
     }
 
     function burnLockedTokens() internal onlyDuringCrowdSaleRefund {
@@ -121,5 +116,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         require(refundAmount > 0, "No refund amount available");
         erc20Token.burnFrom(_contributor, tokenBalance);
         _contributor.transfer(refundAmount);
+        emit RefundSent(_contributor, refundAmount, tokenBalance);
     }
 }

@@ -4,7 +4,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract LockedTokens {
+contract LockedTokens is Ownable {
     struct Tokens {
         uint amount;
         uint lockEndTime;
@@ -15,7 +15,7 @@ contract LockedTokens {
     event TokensLocked(address _to, uint _value, uint _endTime);
 
     IERC20 public token;
-    address public crowdsaleAddress;
+    address public crowdSaleAddress;
     mapping(address => Tokens[]) public walletTokens;
 
     constructor(IERC20 _token) public {
@@ -28,7 +28,7 @@ contract LockedTokens {
     }
 
     function addTokens(address _to, uint _amount, uint _lockEndTime) external {
-        require(msg.sender == crowdsaleAddress);
+        require(msg.sender == crowdSaleAddress);
         walletTokens[_to].push(Tokens({amount: _amount, lockEndTime: _lockEndTime, released: false}));
         emit TokensLocked(_to, _amount, _lockEndTime);
     }

@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/chaitanyapotti/Vault-Sc#readme",
   "dependencies": {
-    "electusaction": "^1.1.1"
+    "electusaction": "^1.2.1"
   },
   "devDependencies": {
     "solidity-coverage": "^0.5.11",

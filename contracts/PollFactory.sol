@@ -20,9 +20,9 @@ contract PollFactory is Treasury {
     uint8[8] public killPollStartDates;
     address public vaultMembershipAddress;
     XfrData[2] public xfrPollData;
-    IERC1261 public vaultMembership;
     BoundPoll public currentKillPoll;
     UnBoundPoll public tapPoll;
+    mapping(address => bool) public pollAddresses;
 
     uint public currentKillPollIndex;
     uint public killAcceptancePercent;
@@ -35,6 +35,9 @@ contract PollFactory is Treasury {
 
     event RefundStarted(address _startedBy);
     event Withdraw(uint amountWei);
+    event TapIncreased(uint weiAmount);
+    event XfrPollCreated(address xfrAddress);
+    event TapPollCreated(address tapPollAddress);
 
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
     uint8[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
@@ -63,7 +66,7 @@ contract PollFactory is Treasury {
                 stringToBytes32("Kill"), 
                 stringToBytes32("Token Proportional Capped Bound"),
                 killPollStartDates[index], KILL_POLL_DURATION);
-
+                pollAddresses[killPoll] = true;
                 killPollAddresses[index] = killPoll;
             }
         
@@ -94,6 +97,9 @@ contract PollFactory is Treasury {
             stringToBytes32("Tap Increment Poll"), 
             stringToBytes32("Token Proportional Capped")
             , now + 1, 0);
+        
+        pollAddresses[address(tapPoll)] = true;
+        emit TapPollCreated(address(tapPoll));
     }
 
     function increaseTap() external onlyOwner onlyDuringGovernance {
@@ -103,6 +109,7 @@ contract PollFactory is Treasury {
             pivotTime = now;
             currentTap = SafeMath.div(SafeMath.mul(TAP_INCREMENT_FACTOR, currentTap), 100);
             delete tapPoll;
+            emit TapIncreased(currentTap);
         }
     }
 
@@ -128,13 +135,15 @@ contract PollFactory is Treasury {
                 stringToBytes32("Token Proportional Capped Bound"),
                 now + 1, XFR_POLL_DURATION);
 
+        pollAddresses[xfrPoll] = true;
         pollData.xfrPollAddress = xfrPoll;
         pollData.amountRequested = _amountToWithdraw;
+        emit XfrPollCreated(xfrPoll);
     }
 
     function withdrawXfrAmount() external onlyOwner onlyDuringGovernance {
         uint withdrawlAmount = 0;
-        for (var index = 0; index < xfrPollData.length; index++) {
+        for (uint8 index = 0; index < xfrPollData.length; index++) {
             XfrData storage pollData = xfrPollData[index];
             BoundPoll xfrPoll = BoundPoll(pollData.xfrPollAddress);
             if (xfrPoll.hasPollEnded()) {
@@ -147,6 +156,7 @@ contract PollFactory is Treasury {
         }
         require(withdrawlAmount > 0, "No Withdrawable amount");
         teamAddress.transfer(withdrawlAmount);
+        emit Withdraw(withdrawlAmount);
     }
 
     function withdrawAmount(uint _amount) external onlyOwner onlyDuringGovernance {
@@ -159,6 +169,7 @@ contract PollFactory is Treasury {
         splineHeightAtPivot = SafeMath.sub(splineHeightAtPivot, _amount);
         withdrawnTillNow += _amount;
         teamAddress.transfer(_amount);
+        emit Withdraw(_amount);
     }
 
     function firstWithdraw() external onlyOwner onlyDuringGovernance {
@@ -168,6 +179,10 @@ contract PollFactory is Treasury {
         require(amount < SafeMath.div(address(this).balance, 10), "Can't withdraw such amount");
         teamAddress.transfer(amount);
         emit Withdraw(amount);
+    }
+
+    function isPollAddress(address _address) external view returns (bool) {
+        return pollAddresses[_address];
     }
 
     function canIncreaseTap() public view returns (bool) {
@@ -193,7 +208,7 @@ contract PollFactory is Treasury {
         return false;
     }
 
-    function canKill() public view returns (bool) onlyDuringGovernance {  
+    function canKill() public onlyDuringGovernance view returns (bool) {  
         if (((SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
             killAcceptancePercent) && (currentKillPoll.getVoterCount(0) > minQuorum)) || 
             (SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) == 100)) 

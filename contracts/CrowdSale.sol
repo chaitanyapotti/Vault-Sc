@@ -4,12 +4,11 @@ import "./Token/LockedTokens.sol";
 import "./Token/DaicoToken.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol"; //need to check if necessary
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./Interfaces/ICrowdSale.sol";
 import "./Interfaces/ICrowdSaleTreasury.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol"; //need to check if necessary
 
 
-contract CrowdSale is Pausable, ICrowdSale, Ownable {
+contract CrowdSale is Pausable, Ownable {
     enum Round {
         Round1,
         Round2,

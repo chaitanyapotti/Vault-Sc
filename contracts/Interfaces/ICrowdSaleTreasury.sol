@@ -9,4 +9,6 @@ interface ICrowdSaleTreasury {
     function onCrowdSaleR1End() external;
 
     function onR1Start() external;
+
+    function isKillPollDeployed() external view returns (bool);
 }

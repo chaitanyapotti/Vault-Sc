@@ -24,6 +24,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     uint public initalFundRelease;
     address public lockedTokenAddress;
     uint public pivotTime;
+    uint public totalEtherRaised;
 
     event RefundSent(address tokenHolder, uint256 amountWei, uint256 tokenAmount);
     event RoundOneStarted();
@@ -99,7 +100,10 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
 
     function processContribution() external payable {
         require(state == TreasuryState.CrowdSale || state == TreasuryState.Governance);
+        totalEtherRaised = SafeMath.add(totalEtherRaised, msg.value);
     }
+
+    function isKillPollDeployed() external view returns (bool);
 
     function refundByKill() public onlyWhenKilled {
         refundContributor(msg.sender);

@@ -39,6 +39,9 @@ contract CrowdSale is Pausable, Ownable {
     uint public etherMinContrib;
     uint public etherMaxContrib;
     uint public currentRoundEndTime;
+    address[] public foundationTokenWallets; 
+    uint[] public foundationAmounts;
+    bool internal mintedFoundationTokens;
     mapping(address => Contribution[3]) public userContributonDetails;
     Round public currentRound;
 
@@ -52,7 +55,7 @@ contract CrowdSale is Pausable, Ownable {
     constructor (uint _etherMinContrib, uint _etherMaxContrib, uint _r1EndTime, 
         uint[3] _roundTokenCounts, uint[3] _roundtokenRates, address _lockedTokensAddress, 
         address _treasuryAddress, address _membershipAddress, address _erc20TokenAddress, 
-        address _vaultMembershipAddress, address[] _foundationTokenWallet, uint[] _foundationAmounts) public {
+        address _vaultMembershipAddress, address[] _foundationTokenWallets, uint[] _foundationAmounts) public {
 
         lockedTokens = LockedTokens(_lockedTokensAddress);
         erc20Token = DaicoToken(_erc20TokenAddress);
@@ -60,18 +63,10 @@ contract CrowdSale is Pausable, Ownable {
         treasury = ICrowdSaleTreasury(_treasuryAddress);
         membership = IERC1261(_membershipAddress);
 
-        assert(_foundationTokenWallet.length == _foundationAmounts.length);
-        uint foundationTokensTotal = 0;
-        for (uint index = 0; index <= _foundationTokenWallet.length; index++) {
-            foundationTokensTotal += _foundationAmounts[index];
-            lockedTokens.addTokens(_foundationTokenWallet[index], _foundationAmounts[index], now + 365 days);
-        }
-        erc20Token.mint(_lockedTokensAddress, foundationTokensTotal, false);
-
-        uint foundationAssert = erc20Token.getTotalMintableSupply() - _roundTokenCounts[0] - 
-            _roundTokenCounts[1] - _roundTokenCounts[2];
+        assert(_foundationTokenWallets.length == _foundationAmounts.length);
         
-        assert(foundationTokensTotal == foundationAssert);
+        foundationTokenWallets = _foundationTokenWallets;
+        foundationAmounts = _foundationAmounts;
 
         etherMinContrib = _etherMinContrib;
         etherMaxContrib = _etherMaxContrib;
@@ -93,6 +88,22 @@ contract CrowdSale is Pausable, Ownable {
         processContribution(msg.sender, msg.value);
     }
 
+    function mintFoundationTokens() public {
+        require(!mintedFoundationTokens, "Already minted foundation tokens");
+        mintedFoundationTokens = true;
+        uint foundationTokensTotal = 0;        
+        for (uint index = 0; index <= foundationTokenWallets.length; index++) {
+            foundationTokensTotal += foundationAmounts[index];
+            lockedTokens.addTokens(foundationTokenWallets[index], foundationAmounts[index], now + 365 days);
+        }
+        
+        uint foundationAssert = erc20Token.getTotalMintableSupply() - roundDetails[0].tokenCount - 
+            roundDetails[0].tokenCount - roundDetails[2].tokenCount;
+        
+        assert(foundationTokensTotal == foundationAssert);
+        erc20Token.mint(address(lockedTokens), foundationTokensTotal, false);
+    }
+
     function finalizeRoundOne() public {
         RoundData storage roundInfo = roundDetails[0];
         if (roundInfo.totalTokensSold == roundInfo.tokenCount) {
@@ -112,6 +123,7 @@ contract CrowdSale is Pausable, Ownable {
             currentRound = Round(uint(currentRound) + 1);
         } else {
             require(now < roundDetails[0].endTime, "First round has elapsed");
+            require(treasury.isKillPollDeployed(), "Kills have not been deployed");
             currentRoundEndTime = roundDetails[0].endTime;
             treasury.onR1Start();
         }

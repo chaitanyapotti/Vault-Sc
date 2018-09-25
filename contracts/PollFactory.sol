@@ -17,7 +17,7 @@ contract PollFactory is Treasury {
     uint public constant TAP_INCREMENT_FACTOR = 150;
 
     address[8] public killPollAddresses;
-    uint8[8] public killPollStartDates;
+    uint[8] public killPollStartDates;
     address public vaultMembershipAddress;
     XfrData[2] public xfrPollData;
     BoundPoll public currentKillPoll;
@@ -40,7 +40,7 @@ contract PollFactory is Treasury {
     event TapPollCreated(address tapPollAddress);
 
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
-    uint8[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
+    uint[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
     uint _minQuorum, uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress) 
         public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress) {
             //check for cap maybe
@@ -56,23 +56,27 @@ contract PollFactory is Treasury {
             tapAcceptancePercent = _tapAcceptancePercent;
             vaultMembershipAddress = _vaultMembershipAddress;
             killPollStartDates = _killPollStartDates;
-            address[] memory protocol = new address[](1);
-            protocol[0] = _vaultMembershipAddress;
-            bytes32[] memory proposal = new bytes32[](1);
-            proposal[0] = stringToBytes32("yes");
-            for (uint8 index = 0; index < _killPollStartDates.length; index++) {
-                address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
-                stringToBytes32("Vault"), 
-                stringToBytes32("Kill"), 
-                stringToBytes32("Token Proportional Capped Bound"),
-                killPollStartDates[index], KILL_POLL_DURATION);
-                pollAddresses[killPoll] = true;
-                killPollAddresses[index] = killPoll;
-            }
-        
-            currentKillPoll = BoundPoll(killPollAddresses[0]);
-            currentKillPollIndex = 0;
+            
         }
+
+    function createKillPoll() external {
+        address[] memory protocol = new address[](1);
+        protocol[0] = vaultMembershipAddress;
+        bytes32[] memory proposal = new bytes32[](1);
+        proposal[0] = stringToBytes32("yes");
+        for (uint index = 0; index < 1; index++) {
+            address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
+            stringToBytes32("Vault"), 
+            stringToBytes32("Kill"), 
+            stringToBytes32("Token Proportional Capped Bound"),
+            killPollStartDates[index], KILL_POLL_DURATION);
+            pollAddresses[killPoll] = true;
+            killPollAddresses[index] = killPoll;
+        }
+        
+        currentKillPoll = BoundPoll(killPollAddresses[0]);
+        currentKillPollIndex = 0;
+    }
 
     function executeKill() external {
         require(currentKillPoll.hasPollEnded(), "Poll hasn't ended yet");

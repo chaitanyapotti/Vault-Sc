@@ -59,14 +59,14 @@ contract CrowdSale is Pausable, Ownable {
         vaultMembership = IERC1261(_vaultMembershipAddress);
         treasury = ICrowdSaleTreasury(_treasuryAddress);
         membership = IERC1261(_membershipAddress);
-
+        
         assert(_foundationTokenWallet.length == _foundationAmounts.length);
         uint foundationTokensTotal = 0;
-        for (uint index = 0; index <= _foundationTokenWallet.length; index++) {
+        for (uint index = 0; index < _foundationTokenWallet.length; index++) {
             foundationTokensTotal += _foundationAmounts[index];
-            lockedTokens.addTokens(_foundationTokenWallet[index], _foundationAmounts[index], now + 365 days);
+            //lockedTokens.addTokens(_foundationTokenWallet[index], _foundationAmounts[index], now + 365 days);
         }
-        erc20Token.mint(_lockedTokensAddress, foundationTokensTotal, false);
+        //erc20Token.mint(_lockedTokensAddress, foundationTokensTotal, false);
 
         uint foundationAssert = erc20Token.getTotalMintableSupply() - _roundTokenCounts[0] - 
             _roundTokenCounts[1] - _roundTokenCounts[2];

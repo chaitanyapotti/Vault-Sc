@@ -18,8 +18,8 @@ contract LockedTokens is Ownable {
     address public crowdSaleAddress;
     mapping(address => Tokens[]) public walletTokens;
 
-    constructor(IERC20 _token) public {
-        token = _token;
+    constructor(address _token) public {
+        token = IERC20(_token);
     }
 
     function setCrowdSaleAddress(address _crowdSaleAddress) external onlyOwner {

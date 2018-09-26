@@ -2,13 +2,12 @@ pragma solidity ^0.4.25;
 
 import "./Token/LockedTokens.sol";
 import "./Token/DaicoToken.sol";
-import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol"; //need to check if necessary
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Interfaces/ICrowdSaleTreasury.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol"; //need to check if necessary
 
 
-contract CrowdSale is Pausable, Ownable {
+contract CrowdSale is Ownable {
     enum Round {
         Round1,
         Round2,
@@ -35,7 +34,7 @@ contract CrowdSale is Pausable, Ownable {
     IERC1261 public vaultMembership;
     IERC1261 public membership;
 
-
+    bool private paused;
     uint public etherMinContrib;
     uint public etherMaxContrib;
     uint public currentRoundEndTime;
@@ -46,11 +45,6 @@ contract CrowdSale is Pausable, Ownable {
     Round public currentRound;
 
     event LogContribution(address contributor, uint etherAmount, uint tokenAmount);
-
-    modifier checkContribution() {
-        require(isValidContribution() && canContribute(msg.sender));
-        _;
-    }
 
     constructor (uint _etherMinContrib, uint _etherMaxContrib, uint _r1EndTime, 
         uint[3] _roundTokenCounts, uint[3] _roundtokenRates, address _lockedTokensAddress, 
@@ -80,8 +74,17 @@ contract CrowdSale is Pausable, Ownable {
         roundDetails[2] = RoundData({
             tokenCount: _roundTokenCounts[2], tokenRate: _roundtokenRates[2], endTime: 0, totalTokensSold: 0
         });
+        paused = true;
+    }
 
-        pause();
+    modifier checkContribution() {
+        require(isValidContribution() && canContribute(msg.sender), "Not a valid contribution");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "Crowdsale is paused");
+        _;
     }
 
     function () public payable whenNotPaused {
@@ -108,16 +111,15 @@ contract CrowdSale is Pausable, Ownable {
 
     function finalizeRoundOne() public {
         RoundData storage roundInfo = roundDetails[0];
-        if (roundInfo.totalTokensSold == roundInfo.tokenCount) {
-            treasury.onCrowdSaleR1End();
-        } else if (now >= currentRoundEndTime && roundInfo.totalTokensSold < roundInfo.tokenCount) {
-            pause();
+        if (now >= currentRoundEndTime && roundInfo.totalTokensSold < roundInfo.tokenCount) {
+            paused = true;
             currentRound = Round.CrowdSaleRefund;
             treasury.enableCrowdsaleRefund();
         }
     }
 
-    function startNewRound() public onlyOwner whenPaused {
+    function startNewRound() public onlyOwner {
+        require(paused, "Crowdsale must be paused");
         require(currentRound != Round.CrowdSaleRefund, "Crowdsale is killed already");
         require(currentRound != Round.Round3, "Already in round 3");
         require(now - currentRoundEndTime > 24 hours, "Must wait 24 hrs to start another round");
@@ -129,7 +131,7 @@ contract CrowdSale is Pausable, Ownable {
             currentRoundEndTime = roundDetails[0].endTime;
             treasury.onR1Start();
         }
-        unpause();
+        paused = false;
     }
 
     function canContribute(address _contributor) public view returns (bool) {
@@ -151,22 +153,23 @@ contract CrowdSale is Pausable, Ownable {
         uint round = uint(currentRound);
         if (round == 0) require(now <= currentRoundEndTime, "First round has passed");
         RoundData storage roundInfo = roundDetails[round];
-
         uint tokensToGiveUser = SafeMath.mul(_amount, roundInfo.tokenRate);
         uint tempTotalTokens = SafeMath.add(tokensToGiveUser, roundInfo.totalTokensSold);
+        
         uint weiSpent = 0;
         uint weiLeft = 0;
         uint totalTokensToSend = 0;
-        if (tempTotalTokens <= roundInfo.tokenCount) {
+        if (tempTotalTokens < roundInfo.tokenCount) {
             weiSpent = _amount;
             totalTokensToSend = tokensToGiveUser;
             roundInfo.totalTokensSold = tempTotalTokens;
         } else {
+            
             uint leftTokens = SafeMath.sub(roundInfo.tokenCount, roundInfo.totalTokensSold);
             weiSpent = SafeMath.div(leftTokens, roundInfo.tokenRate);
             roundInfo.totalTokensSold = roundInfo.tokenCount;
             totalTokensToSend = leftTokens;
-            weiLeft = SafeMath.sub(_amount, weiSpent);
+            weiLeft = SafeMath.sub(_amount, weiSpent);            
             if (round != 2) {
                 RoundData storage nextRoundInfo = roundDetails[round + 1];
                 uint rightTokens = SafeMath.mul(weiLeft, nextRoundInfo.tokenRate);
@@ -174,10 +177,13 @@ contract CrowdSale is Pausable, Ownable {
                 Contribution storage userContrib = userContributonDetails[_contributor][round + 1];
                 userContrib.amount = SafeMath.add(userContrib.amount, weiLeft);
                 totalTokensToSend = SafeMath.add(totalTokensToSend, rightTokens);
+            } else if (round == 0) {
+                treasury.onCrowdSaleR1End();
             }
             currentRoundEndTime = now;
-            pause();
+            paused = true;
         }
+        
         Contribution storage userContribGlobal = userContributonDetails[_contributor][round];
         userContribGlobal.amount = SafeMath.add(userContribGlobal.amount, weiSpent);
         

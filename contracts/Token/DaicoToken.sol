@@ -89,7 +89,9 @@ contract DaicoToken is FreezableToken, Ownable {
     }
 
     function updateGovernanceTokens(address _from, address _to, uint _value) internal {
-        if (vaultMembership.isCurrentMember(_from) && !vaultMembership.isCurrentMember(_to)) {
+        if (_to == address(0)) {
+            tokensUnderGovernance += vaultMembership.isCurrentMember(_from) ? -_value : _value;
+        } else if (vaultMembership.isCurrentMember(_from) && !vaultMembership.isCurrentMember(_to)) {
             tokensUnderGovernance -= _value;
         } else if (!vaultMembership.isCurrentMember(_from) && vaultMembership.isCurrentMember(_to)) {
             tokensUnderGovernance += _value;

@@ -31,7 +31,7 @@ contract("Vault Test", function(accounts) {
       "Electus",
       "ELE",
       protocol1Contract.address,
-      "100000000000000000000000000"
+      "10000"
     );
     console.log("2");
     const amount = await daicoToken.getTotalMintableSupply();
@@ -41,27 +41,26 @@ contract("Vault Test", function(accounts) {
     presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber()))
       .timestamp;
     console.log(presentTime);
-    const firstKillPollStartDate = presentTime + 558000;
+    let firstKillPollStartDate = presentTime + 10000;
     console.log(firstKillPollStartDate);
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[6],
       "1000000000000000000",
       [
-        firstKillPollStartDate,
-        firstKillPollStartDate + 864000,
-        firstKillPollStartDate + 1728000,
-        firstKillPollStartDate + 2592000,
-        firstKillPollStartDate + 3456000,
-        firstKillPollStartDate + 4320000,
-        firstKillPollStartDate + 5184000,
-        firstKillPollStartDate + 6048000
+        firstKillPollStartDate.toString(),
+        (firstKillPollStartDate + 864000).toString(),
+        (firstKillPollStartDate + 1728000).toString(),
+        (firstKillPollStartDate + 2592000).toString(),
+        (firstKillPollStartDate + 3456000).toString(),
+        (firstKillPollStartDate + 4320000).toString(),
+        (firstKillPollStartDate + 5184000).toString(),
+        (firstKillPollStartDate + 6048000).toString()
       ],
       protocol2Contract.address,
       "10",
-      "80",
-      "3",
-      "30",
+      "10",
+      "20",
       "65",
       lockedTokens.address
     );
@@ -70,11 +69,7 @@ contract("Vault Test", function(accounts) {
       "1000000000000000000",
       "2000000000000000000",
       presentTime + 129600,
-      [
-        "10000000000000000000000000",
-        "20000000000000000000000000",
-        "20000000000000000000000000"
-      ],
+      ["1000", "2000", "2000"],
       ["1", "2", "3"],
       lockedTokens.address,
       pollFactory.address,
@@ -82,13 +77,22 @@ contract("Vault Test", function(accounts) {
       daicoToken.address,
       protocol2Contract.address,
       [accounts[7]],
-      ["50000000000000000000000000"]
+      ["5000"]
     );
     console.log("5");
     await daicoToken.setTreasuryAddress(pollFactory.address);
     await daicoToken.setCrowdSaleAddress(crowdSale.address);
     await lockedTokens.setCrowdSaleAddress(crowdSale.address);
     await pollFactory.setCrowdSaleAddress(crowdSale.address);
+    console.log("6");
+    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber()))
+      .timestamp;
+    console.log(presentTime);
+    await pollFactory.createKillPolls();
+
+    console.log("7");
+    //await crowdSale.mintFoundationTokens();
+    console.log("8");
   });
   it("", async () => {});
 });

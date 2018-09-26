@@ -12,8 +12,8 @@ contract PollFactory is Treasury {
         uint amountRequested;
     }
 
-    uint public constant KILL_POLL_DURATION = 7689600; //seconds (89 days)
-    uint public constant XFR_POLL_DURATION = 2592000; //seconds (30 days)
+    uint public constant KILL_POLL_DURATION = 89 days; //seconds (89 days)
+    uint public constant XFR_POLL_DURATION = 30 days; //seconds (30 days)
     uint public constant TAP_INCREMENT_FACTOR = 150;
 
     address[8] public killPollAddresses;
@@ -61,7 +61,7 @@ contract PollFactory is Treasury {
         protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
         proposal[0] = stringToBytes32("yes");
-        for (uint8 index = 0; index < killPollStartDates.length; index++) {
+        for (uint8 index = 0; index < 1; index++) {
             address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
             stringToBytes32("Vault"), 
             stringToBytes32("Kill"), 

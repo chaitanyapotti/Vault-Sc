@@ -92,13 +92,15 @@ contract CrowdSale is Pausable, Ownable {
         require(!mintedFoundationTokens, "Already minted foundation tokens");
         mintedFoundationTokens = true;
         uint foundationTokensTotal = 0;        
-        for (uint index = 0; index <= foundationTokenWallets.length; index++) {
+        for (uint index = 0; index < foundationTokenWallets.length; index++) {
             foundationTokensTotal += foundationAmounts[index];
             lockedTokens.addTokens(foundationTokenWallets[index], foundationAmounts[index], now + 365 days);
         }
-        
-        uint foundationAssert = erc20Token.getTotalMintableSupply() - roundDetails[0].tokenCount - 
-            roundDetails[0].tokenCount - roundDetails[2].tokenCount;
+        RoundData storage round1Info = roundDetails[0];
+        RoundData storage round2Info = roundDetails[1];
+        RoundData storage round3Info = roundDetails[2];
+        uint foundationAssert = erc20Token.getTotalMintableSupply() - round1Info.tokenCount - 
+            round2Info.tokenCount - round3Info.tokenCount;
         
         assert(foundationTokensTotal == foundationAssert);
         erc20Token.mint(address(lockedTokens), foundationTokensTotal, false);

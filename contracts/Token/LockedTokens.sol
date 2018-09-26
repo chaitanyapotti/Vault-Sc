@@ -28,7 +28,7 @@ contract LockedTokens is Ownable {
     }
 
     function addTokens(address _to, uint _amount, uint _lockEndTime) external {
-        require(msg.sender == crowdSaleAddress);
+        require(msg.sender == crowdSaleAddress, "Not enough rights");
         walletTokens[_to].push(Tokens({amount: _amount, lockEndTime: _lockEndTime, released: false}));
         emit TokensLocked(_to, _amount, _lockEndTime);
     }

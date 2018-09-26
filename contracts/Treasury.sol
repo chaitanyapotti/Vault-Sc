@@ -101,6 +101,8 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
 
     function isKillPollDeployed() external view returns (bool);
 
+    function getKillPollStartDate() external view returns (uint);
+
     function refundByKill() public onlyWhenKilled {
         refundContributor(msg.sender);
     }

@@ -17,7 +17,7 @@ contract PollFactory is Treasury {
     uint public constant TAP_INCREMENT_FACTOR = 150;
 
     address[8] public killPollAddresses;
-    uint[8] public killPollStartDates;
+    uint public killPollStartDate;
     address public vaultMembershipAddress;
     XfrData[2] public xfrPollData;
     BoundPoll public currentKillPoll;
@@ -40,7 +40,7 @@ contract PollFactory is Treasury {
     event TapPollCreated(address tapPollAddress);
 
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
-    uint[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
+    uint _killPollStartDate, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
     uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress) 
         public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress) {
             //check for cap maybe
@@ -48,13 +48,12 @@ contract PollFactory is Treasury {
             require(_killAcceptancePercent < 85, "Kill Acceptance should be less than 85 %");
             require(_xfrRejectionPercent < 40, "At least 60% must accept xfr");
             require(_tapAcceptancePercent > 60, "At least 60% must accept tap increment");
-            require(_killPollStartDates.length <= 8, "Max 8 kills must be deployed");
             capPercent = _capPercent;
             killAcceptancePercent = _killAcceptancePercent;
             xfrRejectionPercent = _xfrRejectionPercent;
             tapAcceptancePercent = _tapAcceptancePercent;
             vaultMembershipAddress = _vaultMembershipAddress;
-            killPollStartDates = _killPollStartDates;
+            killPollStartDate = _killPollStartDate;
         }
 
     function createKillPolls() external {
@@ -68,7 +67,7 @@ contract PollFactory is Treasury {
 
     function createRemainingKillPolls() external {
         require(killPollsDeployed == 4, "First Polls have already not been deployed");
-        for (uint8 index = 4; index < killPollStartDates.length; index++) {
+        for (uint8 index = 4; index < 8; index++) {
             createKillPoll(index);
         }
     }
@@ -188,6 +187,10 @@ contract PollFactory is Treasury {
         return killPollsDeployed == killPollAddresses.length;
     }
 
+    function getKillPollStartDate() external view returns (uint) {
+        return killPollStartDate;
+    }
+
     function canIncreaseTap() public view returns (bool) {
         require(address(tapPoll) != address(0), "No tap poll exists yet");
 
@@ -232,11 +235,12 @@ contract PollFactory is Treasury {
         protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
         proposal[0] = stringToBytes32("yes");
+        uint startDate = killPollStartDate + index * (90 days);
         address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
             stringToBytes32("Vault"), 
             stringToBytes32("Kill"), 
             stringToBytes32("Token Proportional Capped Bound"),
-            killPollStartDates[index], KILL_POLL_DURATION);
+            startDate, KILL_POLL_DURATION);
         pollAddresses[killPoll] = true;
         killPollAddresses[index] = killPoll;
         killPollsDeployed += 1;

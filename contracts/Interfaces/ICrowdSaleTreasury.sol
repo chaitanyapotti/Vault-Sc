@@ -11,4 +11,6 @@ interface ICrowdSaleTreasury {
     function onR1Start() external;
 
     function isKillPollDeployed() external view returns (bool);
+
+    function getKillPollStartDate() external view returns (uint);
 }

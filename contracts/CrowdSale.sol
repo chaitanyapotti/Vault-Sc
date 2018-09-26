@@ -58,6 +58,9 @@ contract CrowdSale is Ownable {
         membership = IERC1261(_membershipAddress);
 
         assert(_foundationTokenWallets.length == _foundationAmounts.length);
+
+        uint killPollStartDate = treasury.getKillPollStartDate();
+        assert(killPollStartDate == _r1EndTime);
         
         foundationTokenWallets = _foundationTokenWallets;
         foundationAmounts = _foundationAmounts;

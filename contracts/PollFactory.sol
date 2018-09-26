@@ -28,7 +28,6 @@ contract PollFactory is Treasury {
     uint public killAcceptancePercent;
     uint public tapAcceptancePercent;
     uint public xfrRejectionPercent;
-    uint public minQuorum;
     uint public capPercent;
     uint public splineHeightAtPivot;
     uint public withdrawnTillNow;
@@ -40,31 +39,29 @@ contract PollFactory is Treasury {
     event TapPollCreated(address tapPollAddress);
 
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
-    uint[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
-    uint _minQuorum, uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress) 
+    uint8[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
+    uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress) 
         public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress) {
             //check for cap maybe
             // cap is 10^2 multiplied to actual percentage - already in poll
             require(_killAcceptancePercent < 85, "Kill Acceptance should be less than 85 %");
             require(_xfrRejectionPercent < 40, "At least 60% must accept xfr");
-            require(_minQuorum < 5000, "Cannot require more than 5000 to kill");
             require(_tapAcceptancePercent > 60, "At least 60% must accept tap increment");
-            minQuorum = _minQuorum;
             capPercent = _capPercent;
             killAcceptancePercent = _killAcceptancePercent;
             xfrRejectionPercent = _xfrRejectionPercent;
             tapAcceptancePercent = _tapAcceptancePercent;
             vaultMembershipAddress = _vaultMembershipAddress;
             killPollStartDates = _killPollStartDates;
-            
         }
 
-    function createKillPoll() external {
+    function createKillPolls() external {
+        require(address(currentKillPoll) == address(0), "Kill Polls already deployed");
         address[] memory protocol = new address[](1);
         protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
         proposal[0] = stringToBytes32("yes");
-        for (uint index = 0; index < 1; index++) {
+        for (uint8 index = 0; index < killPollStartDates.length; index++) {
             address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
             stringToBytes32("Vault"), 
             stringToBytes32("Kill"), 
@@ -73,7 +70,6 @@ contract PollFactory is Treasury {
             pollAddresses[killPoll] = true;
             killPollAddresses[index] = killPoll;
         }
-        
         currentKillPoll = BoundPoll(killPollAddresses[0]);
         currentKillPollIndex = 0;
     }
@@ -189,6 +185,10 @@ contract PollFactory is Treasury {
         return pollAddresses[_address];
     }
 
+    function isKillPollDeployed() external view returns (bool) {
+        return address(currentKillPoll) != address(0);
+    }
+
     function canIncreaseTap() public view returns (bool) {
         require(address(tapPoll) != address(0), "No tap poll exists yet");
 
@@ -212,10 +212,10 @@ contract PollFactory is Treasury {
         return false;
     }
 
-    function canKill() public onlyDuringGovernance view returns (bool) {  
-        if (((SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
-            killAcceptancePercent) && (currentKillPoll.getVoterCount(0) > minQuorum)) || 
-            (SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) == 100)) 
+    function canKill() public onlyDuringGovernance view returns (bool) {        
+        if ((SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
+            killAcceptancePercent) && (currentKillPoll.getVoterCount(0) > SafeMath.div(SafeMath.mul(5, 
+            totalEtherRaised), 100000000000000000000)))
             return true;
 
         return false;

@@ -31,6 +31,7 @@ contract PollFactory is Treasury {
     uint public capPercent;
     uint public splineHeightAtPivot;
     uint public withdrawnTillNow;
+    uint public killPollsDeployed;
 
     event RefundStarted(address _startedBy);
     event Withdraw(uint amountWei);
@@ -39,7 +40,7 @@ contract PollFactory is Treasury {
     event TapPollCreated(address tapPollAddress);
 
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
-    uint8[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
+    uint[8] _killPollStartDates, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
     uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress) 
         public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress) {
             //check for cap maybe
@@ -47,6 +48,7 @@ contract PollFactory is Treasury {
             require(_killAcceptancePercent < 85, "Kill Acceptance should be less than 85 %");
             require(_xfrRejectionPercent < 40, "At least 60% must accept xfr");
             require(_tapAcceptancePercent > 60, "At least 60% must accept tap increment");
+            require(_killPollStartDates.length <= 8, "Max 8 kills must be deployed");
             capPercent = _capPercent;
             killAcceptancePercent = _killAcceptancePercent;
             xfrRejectionPercent = _xfrRejectionPercent;
@@ -56,22 +58,19 @@ contract PollFactory is Treasury {
         }
 
     function createKillPolls() external {
-        require(address(currentKillPoll) == address(0), "Kill Polls already deployed");
-        address[] memory protocol = new address[](1);
-        protocol[0] = vaultMembershipAddress;
-        bytes32[] memory proposal = new bytes32[](1);
-        proposal[0] = stringToBytes32("yes");
-        for (uint8 index = 0; index < 1; index++) {
-            address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
-            stringToBytes32("Vault"), 
-            stringToBytes32("Kill"), 
-            stringToBytes32("Token Proportional Capped Bound"),
-            killPollStartDates[index], KILL_POLL_DURATION);
-            pollAddresses[killPoll] = true;
-            killPollAddresses[index] = killPoll;
+        require(killPollsDeployed == 0, "Polls have already been deployed");
+        for (uint8 index = 0; index < 4; index++) {
+            createKillPoll(index);
         }
         currentKillPoll = BoundPoll(killPollAddresses[0]);
         currentKillPollIndex = 0;
+    }
+
+    function createRemainingKillPolls() external {
+        require(killPollsDeployed == 4, "First Polls have already not been deployed");
+        for (uint8 index = 4; index < killPollStartDates.length; index++) {
+            createKillPoll(index);
+        }
     }
 
     function executeKill() external {
@@ -186,7 +185,7 @@ contract PollFactory is Treasury {
     }
 
     function isKillPollDeployed() external view returns (bool) {
-        return address(currentKillPoll) != address(0);
+        return killPollsDeployed == killPollAddresses.length;
     }
 
     function canIncreaseTap() public view returns (bool) {
@@ -226,6 +225,21 @@ contract PollFactory is Treasury {
             return false;
         }
         return true;
+    }
+
+    function createKillPoll(uint8 index) internal {
+        address[] memory protocol = new address[](1);
+        protocol[0] = vaultMembershipAddress;
+        bytes32[] memory proposal = new bytes32[](1);
+        proposal[0] = stringToBytes32("yes");
+        address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
+            stringToBytes32("Vault"), 
+            stringToBytes32("Kill"), 
+            stringToBytes32("Token Proportional Capped Bound"),
+            killPollStartDates[index], KILL_POLL_DURATION);
+        pollAddresses[killPoll] = true;
+        killPollAddresses[index] = killPoll;
+        killPollsDeployed += 1;
     }
 
     function stringToBytes32(string memory source) internal pure returns (bytes32 result) {

@@ -27,8 +27,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     uint public totalEtherRaised;
 
     event RefundSent(address tokenHolder, uint256 amountWei, uint256 tokenAmount);
-    event RoundOneStarted();
-    event RoundOneFinished();
     event DaicoRefunded();
     
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
@@ -71,7 +69,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
 
     function onR1Start() external onlyCrowdSale {
         state = TreasuryState.CrowdSale;
-        emit RoundOneStarted();
     }
 
     function onCrowdSaleR1End() external onlyCrowdSale {
@@ -79,7 +76,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         firstWithdrawAmount = initalFundRelease;
         pivotTime = now;
         currentTap = INITIAL_TAP;
-        emit RoundOneFinished();
     }    
 
     function enableCrowdsaleRefund() external onlyCrowdSale onlyDuringCrowdSale {

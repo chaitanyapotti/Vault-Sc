@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/chaitanyapotti/Vault-Sc#readme",
   "dependencies": {
-    "electusaction": "^1.2.2",
+    "electusaction": "^1.2.3",
     "truffle-assertions": "^0.5.0"
   },
   "devDependencies": {
@@ -31,12 +31,12 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-mocha": "^5.2.0",
     "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-prettier": "^2.6.2",
+    "eslint-plugin-prettier": "^2.7.0",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "lint-staged": "^7.3.0",
     "prettier": "^1.14.3",
-    "solhint": "^1.2.1",
-    "husky": "^1.0.0-rc.15"
+    "solhint": "^1.3.0",
+    "husky": "^1.0.1"
   }
 }

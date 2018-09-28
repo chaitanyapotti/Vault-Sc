@@ -17,7 +17,7 @@ module.exports = async function(deployer, network, accounts) {
   await protocol1Contract.assignTo(accounts[1], [0], {
     from: accounts[0]
   });
-  console.log(protocol1Contract.address);
+  console.log("Vault Contract: ", protocol1Contract.address);
   await protocol1Contract.assignTo(accounts[2], [0], {
     from: accounts[0]
   });
@@ -53,11 +53,11 @@ module.exports = async function(deployer, network, accounts) {
   await protocol1Contract.assignTo(accounts[7], [0], {
     from: accounts[0]
   });
-  console.log(protocol2Contract.address);
+  console.log("Membership Contract: ", protocol2Contract.address);
   daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000");
-  console.log(daicoToken.address);
+  console.log("Daico Token Contract: ", daicoToken.address);
   lockedTokens = await LockedTokens.new(daicoToken.address);
-  console.log(lockedTokens.address);
+  console.log("Locked Token Contract: ", lockedTokens.address);
   presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
   pollFactory = await PollFactory.new(
     daicoToken.address,
@@ -71,7 +71,7 @@ module.exports = async function(deployer, network, accounts) {
     "65",
     lockedTokens.address
   );
-  console.log(pollFactory.address);
+  console.log("Poll Factory Contract: ", pollFactory.address);
   crowdSale = await CrowdSale.new(
     "2000000000000000000",
     "5000000000000000000",
@@ -86,7 +86,7 @@ module.exports = async function(deployer, network, accounts) {
     [accounts[7]],
     ["5000000000000000000000"]
   );
-  console.log(crowdSale.address);
+  console.log("Crowdsale Contract: ", crowdSale.address);
   await daicoToken.setTreasuryAddress(pollFactory.address);
   await daicoToken.setCrowdSaleAddress(crowdSale.address);
   await lockedTokens.setCrowdSaleAddress(crowdSale.address);

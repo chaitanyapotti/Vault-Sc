@@ -5,6 +5,7 @@ var PollFactory = artifacts.require("./PollFactory.sol");
 var CrowdSale = artifacts.require("./CrowdSale.sol");
 const increaseTime = require("./utils/increaseTime");
 const truffleAssert = require("truffle-assertions");
+var boundPoll = artifacts.require("./BoundPoll.sol");
 
 contract("Vault Test", function(accounts) {
   let protocol1Contract;
@@ -81,7 +82,7 @@ contract("Vault Test", function(accounts) {
       protocol1Contract.address,
       daicoToken.address,
       protocol2Contract.address,
-      [accounts[7]],
+      [accounts[18]],
       ["5000000000000000000000"]
     );
     await daicoToken.setTreasuryAddress(pollFactory.address);
@@ -211,6 +212,17 @@ contract("Vault Test", function(accounts) {
     await increaseTime(100000000000);
     await crowdSale.finalizeRoundOne();
     const refund = await pollFactory.refundBySoftcapFail({ from: accounts[1] });
+    truffleAssert.eventEmitted(refund, "RefundSent");
+  });
+  it("finalize round one: all tokens are not sold and refund by owner", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await increaseTime(100000000000);
+    await crowdSale.finalizeRoundOne();
+    const refund = await pollFactory.forceRefundBySoftcapFail(accounts[1]);
     truffleAssert.eventEmitted(refund, "RefundSent");
   });
   it("start new round failure : tries to start round2 after crowd sale is killed", async () => {
@@ -634,5 +646,115 @@ contract("Vault Test", function(accounts) {
       value: await web3.utils.toWei("3", "ether").toString(),
       from: accounts[4]
     });
+  });
+  it("releases tokens success", async () => {
+    await increaseTime(41536000);
+    const result = await lockedTokens.releaseTokens({ from: accounts[18] });
+    truffleAssert.eventEmitted(result, "TokensUnlocked");
+  });
+  it("burn tokens", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[3]
+    });
+    await daicoToken.burn(10000000, { from: accounts[3] });
+  });
+  it("transfers tokens", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[3]
+    });
+    await daicoToken.transfer(accounts[2], 10000000, { from: accounts[3] });
+  });
+  it("transfers tokens using transfer from method", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[3]
+    });
+    await daicoToken.approve(accounts[2], 10000000, { from: accounts[3] });
+    await daicoToken.transferFrom(accounts[3], accounts[2], 10000000, { from: accounts[2] });
+  });
+  it("transfers tokens to a person who is not a vault member", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[3]
+    });
+    await daicoToken.transfer(accounts[50], "10000000", { from: accounts[3] });
+  });
+  it("a daico member revokes his vault membership and transfers tokens to another daico member", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[3]
+    });
+    await protocol2Contract.forfeitMembership({
+      from: accounts[3]
+    });
+    await daicoToken.transfer(accounts[2], 10000000, { from: accounts[3] });
+  });
+  it("unfreeze account", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[3]
+    });
+    const killPollAddress = await pollFactory.currentKillPoll();
+    const killPollInstance = await boundPoll.at(killPollAddress);
+    await increaseTime(13500);
+    await killPollInstance.vote(0, { from: accounts[1] });
+    await increaseTime(8000000);
+    await killPollInstance.unFreezeTokens({ from: accounts[1] });
   });
 });

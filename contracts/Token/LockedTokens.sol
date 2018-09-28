@@ -35,7 +35,6 @@ contract LockedTokens is Ownable {
 
     function releaseTokens() public {
         require(walletTokens[msg.sender].length > 0);
-
         for (uint i = 0; i < walletTokens[msg.sender].length; i++) {
             if (!walletTokens[msg.sender][i].released && now >= walletTokens[msg.sender][i].lockEndTime) {
                 walletTokens[msg.sender][i].released = true;

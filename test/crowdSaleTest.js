@@ -15,13 +15,8 @@ contract("Vault Test", function(accounts) {
   let crowdSale;
   let presentTime;
   beforeEach("setup", async () => {
-    protocol1Contract = await ElectusProtocol.new(
-      "0x57616e636861696e",
-      "0x57414e"
-    );
-    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [
-      web3.utils.fromAscii("black")
-    ]);
+    protocol1Contract = await ElectusProtocol.new("0x57616e636861696e", "0x57414e");
+    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol1Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
     });
@@ -40,13 +35,8 @@ contract("Vault Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[6], [0], {
       from: accounts[0]
     });
-    protocol2Contract = await ElectusProtocol.new(
-      "0x55532026204368696e61",
-      "0x5543"
-    );
-    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [
-      web3.utils.fromAscii("black")
-    ]);
+    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543");
+    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol2Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
     });
@@ -65,15 +55,9 @@ contract("Vault Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[7], [0], {
       from: accounts[0]
     });
-    daicoToken = await DaicoToken.new(
-      "Electus",
-      "ELE",
-      protocol1Contract.address,
-      "10000000000000000000000"
-    );
+    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000");
     lockedTokens = await LockedTokens.new(daicoToken.address);
-    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber()))
-      .timestamp;
+    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[6],
@@ -90,11 +74,7 @@ contract("Vault Test", function(accounts) {
       "2000000000000000000",
       "5000000000000000000",
       presentTime + 12960,
-      [
-        "1000000000000000000000",
-        "2000000000000000000000",
-        "2000000000000000000000"
-      ],
+      ["1000000000000000000000", "2000000000000000000000", "2000000000000000000000"],
       ["100", "200", "200"],
       lockedTokens.address,
       pollFactory.address,
@@ -230,7 +210,7 @@ contract("Vault Test", function(accounts) {
     });
     await increaseTime(100000000000);
     await crowdSale.finalizeRoundOne();
-    const refund = await pollFactory.refundBySoftcapFail({from: accounts[1]})
+    const refund = await pollFactory.refundBySoftcapFail({ from: accounts[1] });
     truffleAssert.eventEmitted(refund, "RefundSent");
   });
   it("start new round failure : tries to start round2 after crowd sale is killed", async () => {
@@ -245,8 +225,7 @@ contract("Vault Test", function(accounts) {
     await increaseTime(100000);
     try {
       await crowdSale.startNewRound();
-    }
-    catch(err){
+    } catch (err) {
       assert.exists(err);
     }
   });
@@ -266,8 +245,7 @@ contract("Vault Test", function(accounts) {
     });
     try {
       await crowdSale.startNewRound();
-    }
-    catch(err){
+    } catch (err) {
       assert.exists(err);
     }
   });
@@ -287,8 +265,7 @@ contract("Vault Test", function(accounts) {
     });
     try {
       await crowdSale.startNewRound();
-    }
-    catch(err){
+    } catch (err) {
       assert.exists(err);
     }
   });
@@ -560,8 +537,7 @@ contract("Vault Test", function(accounts) {
         value: await web3.utils.toWei("2", "ether").toString(),
         from: accounts[4]
       });
-    }
-    catch(err){
+    } catch (err) {
       assert.exists(err);
     }
   });
@@ -612,8 +588,7 @@ contract("Vault Test", function(accounts) {
         value: await web3.utils.toWei("2", "ether").toString(),
         from: accounts[4]
       });
-    }
-    catch(err){
+    } catch (err) {
       assert.exists(err);
     }
   });

@@ -70,16 +70,7 @@ contract("Vault Test", function(accounts) {
       daicoToken.address,
       accounts[6],
       "1000000000000000000",
-      [
-        firstKillPollStartDate,
-        (firstKillPollStartDate + 864000).toString(),
-        (firstKillPollStartDate + 1728000).toString(),
-        (firstKillPollStartDate + 2592000).toString(),
-        (firstKillPollStartDate + 3456000).toString(),
-        (firstKillPollStartDate + 4320000).toString(),
-        (firstKillPollStartDate + 5184000).toString(),
-        (firstKillPollStartDate + 6048000).toString()
-      ],
+      presentTime + 129600,
       protocol2Contract.address,
       "10",
       "10",
@@ -119,5 +110,3 @@ contract("Vault Test", function(accounts) {
     }
   });
 });
-
-

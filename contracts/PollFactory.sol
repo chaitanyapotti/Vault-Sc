@@ -122,7 +122,6 @@ contract PollFactory is Treasury {
         }
         require(_amountToWithdraw <= SafeMath.div(address(this).balance, 10), "Can't withdraw > 10% of balance");
         XfrData storage pollData = xfrPollData[_pollNumber];
-        require(pollData.xfrPollAddress == address(0), "Poll running/funds not withdrawn");
         address[] memory protocol = new address[](1);
         protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
@@ -217,8 +216,7 @@ contract PollFactory is Treasury {
     function canKill() public onlyDuringGovernance view returns (bool) {        
         if ((SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
             killAcceptancePercent) && (currentKillPoll.getVoterCount(0) > SafeMath.div(SafeMath.mul(5, 
-            totalEtherRaised), 100000000000000000000)))
-            return true;
+            totalEtherRaised), 100000000000000000000))) {return true;}
 
         return false;
     }

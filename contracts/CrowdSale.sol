@@ -107,7 +107,6 @@ contract CrowdSale is Ownable {
         RoundData storage round3Info = roundDetails[2];
         uint foundationAssert = erc20Token.getTotalMintableSupply() - round1Info.tokenCount - 
             round2Info.tokenCount - round3Info.tokenCount;
-        
         assert(foundationTokensTotal == foundationAssert);
         erc20Token.mint(address(lockedTokens), foundationTokensTotal, false);
     }
@@ -167,7 +166,6 @@ contract CrowdSale is Ownable {
             totalTokensToSend = tokensToGiveUser;
             roundInfo.totalTokensSold = tempTotalTokens;
         } else {
-            
             uint leftTokens = SafeMath.sub(roundInfo.tokenCount, roundInfo.totalTokensSold);
             weiSpent = SafeMath.div(leftTokens, roundInfo.tokenRate);
             roundInfo.totalTokensSold = roundInfo.tokenCount;
@@ -179,10 +177,12 @@ contract CrowdSale is Ownable {
                 nextRoundInfo.totalTokensSold = rightTokens;
                 Contribution storage userContrib = userContributonDetails[_contributor][round + 1];
                 userContrib.amount = SafeMath.add(userContrib.amount, weiLeft);
+                weiSpent = SafeMath.add(weiSpent, weiLeft);
                 totalTokensToSend = SafeMath.add(totalTokensToSend, rightTokens);
-            } else if (round == 0) {
-                treasury.onCrowdSaleR1End();
-            }
+                if (round == 0) {
+                    treasury.onCrowdSaleR1End();
+                }
+            } 
             currentRoundEndTime = now;
             paused = true;
         }
@@ -190,10 +190,11 @@ contract CrowdSale is Ownable {
         Contribution storage userContribGlobal = userContributonDetails[_contributor][round];
         userContribGlobal.amount = SafeMath.add(userContribGlobal.amount, weiSpent);
         
-        processPayment(_contributor, _amount, totalTokensToSend);
+        processPayment(_contributor, weiSpent, totalTokensToSend);
+
         if (round == 2 && weiLeft > 0) {
             erc20Token.finishMinting();
-            _contributor.transfer(weiLeft); 
+            _contributor.transfer(weiLeft);  //address.transfer
         }
     }
 

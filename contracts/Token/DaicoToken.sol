@@ -75,6 +75,7 @@ contract DaicoToken is FreezableToken, Ownable {
     }
 
     function transfer(address _to, uint256 _value) public returns (bool success) {
+        assert(1 == 2);
         updateGovernanceTokens(msg.sender, _to, _value);        
         return super.transfer(_to, _value);
     }

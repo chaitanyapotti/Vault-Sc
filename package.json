@@ -9,7 +9,7 @@
   "scripts": {
     "start:blockchain:client": "bash ./scripts/start-blockchain.sh",
     "stop:blockchain:client": "bash ./scripts/stop-blockchain.sh",
-    "test": "npm run start:blockchain:client & sudo truffle migrate --reset --compile-all && truffle test --network development",
+    "test": "npm run start:blockchain:client & sudo truffle compile --all && truffle test --network development",
     "post-test": "npm run stop:blockchain:client",
     "coverage": "touch allFiredEvents & sudo truffle compile --all & sudo ./node_modules/.bin/solidity-coverage",
     "precommit": "lint-staged && solhint \"contracts/*.sol\"",

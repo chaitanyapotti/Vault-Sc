@@ -1,20 +1,39 @@
 {
   "name": "vault-sc",
   "version": "1.0.0",
-  "description": "<!-- <img align=\"center\" src=\"./img/colonyNetwork_color.svg\" /> -->",
-  "main": ".solcover.js",
+  "description": "Smart Contracts for Vault",
+  "main": "truffle-config.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:blockchain:client": "bash ./scripts/start-blockchain.sh",
+    "stop:blockchain:client": "bash ./scripts/stop-blockchain.sh",
+    "test": "npm run start:blockchain:client & truffle migrate --reset --compile-all && truffle test --network development",
+    "post-test": "npm run stop:blockchain:client",
+    "coverage": "touch allFiredEvents & ./node_modules/.bin/solidity-coverage",
+    "precommit": "lint-staged && solhint \"contracts/*.sol\"",
+    "prettier": "prettier --write \"**/*.{js,json,css,md}\"",
+    "eslint-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
+    "lint:sol": "solhint contracts/**/*.sol",
+    "lint:js": "eslint test/**/*.js"
   },
+  "lint-staged": {
+    "**/*.{js,json,css,md}": [
+      "prettier --write --print-width 150",
+      "git add"
+    ]
+  },
+  "files": [
+    "contracts",
+    "test"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chaitanyapotti/Vault-Sc.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Chaitanya Potti",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/chaitanyapotti/Vault-Sc/issues"
   },

@@ -17,13 +17,8 @@ contract("Vault Test", function(accounts) {
   let crowdSale;
   let presentTime;
   beforeEach("setup", async () => {
-    protocol1Contract = await ElectusProtocol.new(
-      "0x57616e636861696e",
-      "0x57414e"
-    );
-    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [
-      web3.utils.fromAscii("black")
-    ]);
+    protocol1Contract = await ElectusProtocol.new("0x57616e636861696e", "0x57414e");
+    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol1Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
     });
@@ -56,14 +51,9 @@ contract("Vault Test", function(accounts) {
       from: accounts[0]
     });
 
-    protocol2Contract = await ElectusProtocol.new(
-      "0x55532026204368696e61",
-      "0x5543"
-    );
+    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543");
 
-    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [
-      web3.utils.fromAscii("black")
-    ]);
+    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
 
     await protocol2Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
@@ -101,17 +91,11 @@ contract("Vault Test", function(accounts) {
       from: accounts[0]
     });
 
-    daicoToken = await DaicoToken.new(
-      "Electus",
-      "ELE",
-      protocol1Contract.address,
-      "10000000000000000000000"
-    );
+    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000");
 
     lockedTokens = await LockedTokens.new(daicoToken.address);
 
-    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber()))
-      .timestamp;
+    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[15],
@@ -129,11 +113,7 @@ contract("Vault Test", function(accounts) {
       "1000000000000000000",
       "5000000000000000000",
       presentTime + 12960,
-      [
-        "8100000000000000000000",
-        "450000000000000000000",
-        "450000000000000000000"
-      ],
+      ["8100000000000000000000", "450000000000000000000", "450000000000000000000"],
       ["900", "200", "200"],
       lockedTokens.address,
       pollFactory.address,
@@ -151,428 +131,426 @@ contract("Vault Test", function(accounts) {
     await pollFactory.createRemainingKillPolls();
     await crowdSale.mintFoundationTokens();
   });
-    it("execute kill failure: current kill poll hasnt ended yet", async () => {
-      try {
-        await pollFactory.executeKill();
-      } catch (err) {
-        assert.exists(err);
-      }
-    });
-    it("execute kill failure: calls when governance is not in place", async () => {
-      await increaseTime(1000000000);
-      try {
-        await pollFactory.executeKill();
-      } catch (err) {
-        assert.exists(err);
-      }
-    });
-    it("execute kill success ", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[3]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[4]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[5]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[6]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[7]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[8]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[9]
-      });
-      const killPollAddress = await pollFactory.currentKillPoll();
-      const killPollInstance = await boundPoll.at(killPollAddress);
-      await increaseTime(13500);
-      await killPollInstance.vote(0, { from: accounts[1] });
-      await killPollInstance.vote(0, { from: accounts[2] });
-      await killPollInstance.vote(0, { from: accounts[3] });
-      await killPollInstance.vote(0, { from: accounts[4] });
-      await killPollInstance.vote(0, { from: accounts[5] });
-      await killPollInstance.vote(0, { from: accounts[6] });
-      await killPollInstance.vote(0, { from: accounts[7] });
-      await killPollInstance.vote(0, { from: accounts[8] });
-      await killPollInstance.vote(0, { from: accounts[9] });
-
-      await increaseTime(10000000);
-      const result = await pollFactory.executeKill();
-      const result1 = await pollFactory.refundByKill({from:accounts[1]});
-      truffleAssert.eventEmitted(result, "RefundStarted");
-      truffleAssert.eventEmitted(result1, "RefundSent");
-    });
-  it("execute kill failure: returns false in can kill check", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      const killPollAddress = await pollFactory.currentKillPoll();
-      const killPollInstance = await boundPoll.at(killPollAddress);
-      await increaseTime(13500);
-      await killPollInstance.vote(0, { from: accounts[1] });
-      await killPollInstance.vote(0, { from: accounts[2] });
-      await killPollInstance.vote(0, { from: accounts[3] });
-
-      await increaseTime(10000000);
-      const result = await pollFactory.canKill();
-      assert.equal(result, false)
+  it("execute kill failure: current kill poll hasnt ended yet", async () => {
+    try {
       await pollFactory.executeKill();
-      const currentkillPollIndex = await pollFactory.currentKillPollIndex();
-      assert.equal(web3.utils.toDecimal(currentkillPollIndex), 1)
+    } catch (err) {
+      assert.exists(err);
+    }
+  });
+  it("execute kill failure: calls when governance is not in place", async () => {
+    await increaseTime(1000000000);
+    try {
+      await pollFactory.executeKill();
+    } catch (err) {
+      assert.exists(err);
+    }
+  });
+  it("execute kill success ", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[1]
     });
-    it("first with draw success", async () => {
-        await crowdSale.startNewRound();
-        await crowdSale.sendTransaction({
-          value: await web3.utils.toWei("3", "ether").toString(),
-          from: accounts[1]
-        });
-        await crowdSale.sendTransaction({
-          value: await web3.utils.toWei("3", "ether").toString(),
-          from: accounts[2]
-        });
-        await crowdSale.sendTransaction({
-          value: await web3.utils.toWei("3", "ether").toString(),
-          from: accounts[3]
-        });
-        console.log(await web3.eth.getBalance(accounts[15]));
-        const result = await pollFactory.firstWithdraw();
-        truffleAssert.eventEmitted(result, "Withdraw");
-        console.log(await web3.eth.getBalance(accounts[15]));
-      });
-    it("can with draw method success : returns true", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      const result = await pollFactory.canWithdraw();
-      assert.equal(result, true);
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[2]
     });
-    it("create tap increment poll: success", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      const result = await pollFactory.createTapIncrementPoll();
-      truffleAssert.eventEmitted(result, "TapPollCreated");
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[3]
     });
-    it("create tap increment poll failure: tries to create tap poll when a tap exists already", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      const result = await pollFactory.createTapIncrementPoll();
-      truffleAssert.eventEmitted(result, "TapPollCreated");
-      try{
-          await pollFactory.createTapIncrementPoll();
-      }
-      catch(err){
-          assert.exists(err);
-      }
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[4]
     });
-    it("increase tap failure", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[5]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[6]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[7]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[8]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[9]
+    });
+    const killPollAddress = await pollFactory.currentKillPoll();
+    const killPollInstance = await boundPoll.at(killPollAddress);
+    await increaseTime(13500);
+    await killPollInstance.vote(0, { from: accounts[1] });
+    await killPollInstance.vote(0, { from: accounts[2] });
+    await killPollInstance.vote(0, { from: accounts[3] });
+    await killPollInstance.vote(0, { from: accounts[4] });
+    await killPollInstance.vote(0, { from: accounts[5] });
+    await killPollInstance.vote(0, { from: accounts[6] });
+    await killPollInstance.vote(0, { from: accounts[7] });
+    await killPollInstance.vote(0, { from: accounts[8] });
+    await killPollInstance.vote(0, { from: accounts[9] });
+
+    await increaseTime(10000000);
+    const result = await pollFactory.executeKill();
+    const result1 = await pollFactory.refundByKill({ from: accounts[1] });
+    truffleAssert.eventEmitted(result, "RefundStarted");
+    truffleAssert.eventEmitted(result1, "RefundSent");
+  });
+  it("execute kill failure: returns false in can kill check", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    const killPollAddress = await pollFactory.currentKillPoll();
+    const killPollInstance = await boundPoll.at(killPollAddress);
+    await increaseTime(13500);
+    await killPollInstance.vote(0, { from: accounts[1] });
+    await killPollInstance.vote(0, { from: accounts[2] });
+    await killPollInstance.vote(0, { from: accounts[3] });
+
+    await increaseTime(10000000);
+    const result = await pollFactory.canKill();
+    assert.equal(result, false);
+    await pollFactory.executeKill();
+    const currentkillPollIndex = await pollFactory.currentKillPollIndex();
+    assert.equal(web3.utils.toDecimal(currentkillPollIndex), 1);
+  });
+  it("first with draw success", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    console.log(await web3.eth.getBalance(accounts[15]));
+    const result = await pollFactory.firstWithdraw();
+    truffleAssert.eventEmitted(result, "Withdraw");
+    console.log(await web3.eth.getBalance(accounts[15]));
+  });
+  it("can with draw method success : returns true", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    const result = await pollFactory.canWithdraw();
+    assert.equal(result, true);
+  });
+  it("create tap increment poll: success", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    const result = await pollFactory.createTapIncrementPoll();
+    truffleAssert.eventEmitted(result, "TapPollCreated");
+  });
+  it("create tap increment poll failure: tries to create tap poll when a tap exists already", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    const result = await pollFactory.createTapIncrementPoll();
+    truffleAssert.eventEmitted(result, "TapPollCreated");
+    try {
       await pollFactory.createTapIncrementPoll();
-      const tapPollAddress = await pollFactory.tapPoll();
-      const tapPollInstance = await unBoundPoll.at(tapPollAddress);
-      await tapPollInstance.vote(0, { from: accounts[1] });
-      await tapPollInstance.vote(0, { from: accounts[2] });
-      await tapPollInstance.vote(0, { from: accounts[3] });
-      const result = await pollFactory.canIncreaseTap();
-      assert.equal(result, false);
+    } catch (err) {
+      assert.exists(err);
+    }
+  });
+  it("increase tap failure", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
     });
-    it("can increase tap success ", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[3]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[4]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[5]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[6]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[7]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[8]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[9]
-      });
-      const killPollAddress = await pollFactory.currentKillPoll();
-      const killPollInstance = await boundPoll.at(killPollAddress);
-      await increaseTime(13500);
-      await killPollInstance.vote(0, { from: accounts[1] });
-      await killPollInstance.vote(0, { from: accounts[2] });
-      await killPollInstance.vote(0, { from: accounts[3] });
-      await pollFactory.createTapIncrementPoll();
-      const tapPollAddress = await pollFactory.tapPoll();
-      const tapPollInstance = await unBoundPoll.at(tapPollAddress);
-      await tapPollInstance.vote(0, { from: accounts[1] });
-      await tapPollInstance.vote(0, { from: accounts[2] });
-      await tapPollInstance.vote(0, { from: accounts[3] });
-      await tapPollInstance.vote(0, { from: accounts[4] });
-      await tapPollInstance.vote(0, { from: accounts[5] });
-      await tapPollInstance.vote(0, { from: accounts[6] });
-      await tapPollInstance.vote(0, { from: accounts[7] });
-      await tapPollInstance.vote(0, { from: accounts[8] });
-      const result = await pollFactory.increaseTap();
-      truffleAssert.eventEmitted(result, "TapIncreased");
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
     });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await pollFactory.createTapIncrementPoll();
+    await increaseTime(1000);
+    const tapPollAddress = await pollFactory.tapPoll();
+    const tapPollInstance = await unBoundPoll.at(tapPollAddress);
+    await tapPollInstance.vote(0, { from: accounts[1] });
+    await tapPollInstance.vote(0, { from: accounts[2] });
+    await tapPollInstance.vote(0, { from: accounts[3] });
+    const result = await pollFactory.canIncreaseTap();
+    assert.equal(result, false);
+  });
+  it("can increase tap success ", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[3]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[4]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[5]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[6]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[7]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[8]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[9]
+    });
+    const killPollAddress = await pollFactory.currentKillPoll();
+    const killPollInstance = await boundPoll.at(killPollAddress);
+    await increaseTime(13500);
+    await killPollInstance.vote(0, { from: accounts[1] });
+    await killPollInstance.vote(0, { from: accounts[2] });
+    await killPollInstance.vote(0, { from: accounts[3] });
+    await pollFactory.createTapIncrementPoll();
+    await increaseTime(1000);
+    const tapPollAddress = await pollFactory.tapPoll();
+    const tapPollInstance = await unBoundPoll.at(tapPollAddress);
+    await tapPollInstance.vote(0, { from: accounts[1] });
+    await tapPollInstance.vote(0, { from: accounts[2] });
+    await tapPollInstance.vote(0, { from: accounts[3] });
+    await tapPollInstance.vote(0, { from: accounts[4] });
+    await tapPollInstance.vote(0, { from: accounts[5] });
+    await tapPollInstance.vote(0, { from: accounts[6] });
+    await tapPollInstance.vote(0, { from: accounts[7] });
+    await tapPollInstance.vote(0, { from: accounts[8] });
+    const result = await pollFactory.increaseTap();
+    truffleAssert.eventEmitted(result, "TapIncreased");
+  });
   it("createXfr success", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      const result = await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      truffleAssert.eventEmitted(result, "XfrPollCreated");
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
     });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    const result = await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    truffleAssert.eventEmitted(result, "XfrPollCreated");
+  });
   it("createXfr success failure: tries to create 3rd XFR", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      try {
-          await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      }
-      catch(err){
-          console.log(err);
-          assert.exists(err);
-      }
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
     });
-    it("createXfr success failure: Can't withdraw more than 10% of balance", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      try{
-          await pollFactory.createXfr(await web3.utils.toWei("1", "ether"));
-      }
-      catch(err){
-          console.log(err);
-          assert.exists(err);
-      }
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
     });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    try {
+      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    } catch (err) {
+      console.log(err);
+      assert.exists(err);
+    }
+  });
+  it("createXfr success failure: Can't withdraw more than 10% of balance", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    try {
+      await pollFactory.createXfr(await web3.utils.toWei("1", "ether"));
+    } catch (err) {
+      console.log(err);
+      assert.exists(err);
+    }
+  });
   it("withdraw xfr amount success", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      await increaseTime(3000000);
-      const withdraw = await pollFactory.withdrawXfrAmount();
-      truffleAssert.eventEmitted(withdraw, "Withdraw")
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
     });
-    it("withdraw xfr amount failure : poll has not ended", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("3", "ether").toString(),
-        from: accounts[3]
-      });
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      try{
-        await pollFactory.withdrawXfrAmount();
-      }
-      catch(err){
-        assert.exists(err);
-      }
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
     });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await increaseTime(3000000);
+    const withdraw = await pollFactory.withdrawXfrAmount();
+    truffleAssert.eventEmitted(withdraw, "Withdraw");
+  });
+  it("withdraw xfr amount failure : poll has not ended", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    try {
+      await pollFactory.withdrawXfrAmount();
+    } catch (err) {
+      assert.exists(err);
+    }
+  });
   it("withdraw xfr amount failure : can kill is true so withdraw for xfr fails", async () => {
-      await crowdSale.startNewRound();
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[1]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[2]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[3]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[4]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[5]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[6]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[7]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[8]
-      });
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("1", "ether").toString(),
-        from: accounts[9]
-      });
-      const killPollAddress = await pollFactory.currentKillPoll();
-      const killPollInstance = await boundPoll.at(killPollAddress);
-      await increaseTime(13500);
-      await killPollInstance.vote(0, { from: accounts[1] });
-      await killPollInstance.vote(0, { from: accounts[2] });
-      await killPollInstance.vote(0, { from: accounts[3] });
-      await killPollInstance.vote(0, { from: accounts[4] });
-      await killPollInstance.vote(0, { from: accounts[5] });
-      await killPollInstance.vote(0, { from: accounts[6] });
-      await killPollInstance.vote(0, { from: accounts[7] });
-      await killPollInstance.vote(0, { from: accounts[8] });
-      await killPollInstance.vote(0, { from: accounts[9] });
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-      await increaseTime(3000000);
-      try {
-        await pollFactory.withdrawXfrAmount();
-      } catch (err) {
-        assert.exists(err);
-      }
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[1]
     });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[3]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[4]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[5]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[6]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[7]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[8]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[9]
+    });
+    const killPollAddress = await pollFactory.currentKillPoll();
+    const killPollInstance = await boundPoll.at(killPollAddress);
+    await increaseTime(13500);
+    await killPollInstance.vote(0, { from: accounts[1] });
+    await killPollInstance.vote(0, { from: accounts[2] });
+    await killPollInstance.vote(0, { from: accounts[3] });
+    await killPollInstance.vote(0, { from: accounts[4] });
+    await killPollInstance.vote(0, { from: accounts[5] });
+    await killPollInstance.vote(0, { from: accounts[6] });
+    await killPollInstance.vote(0, { from: accounts[7] });
+    await killPollInstance.vote(0, { from: accounts[8] });
+    await killPollInstance.vote(0, { from: accounts[9] });
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await increaseTime(3000000);
+    try {
+      await pollFactory.withdrawXfrAmount();
+    } catch (err) {
+      assert.exists(err);
+    }
+  });
   it("withdraw amount success", async () => {
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({

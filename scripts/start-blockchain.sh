@@ -15,7 +15,7 @@ bc_client_running() {
 }
 
 start_ganache() {
-  node_modules/.bin/ganache-cli --noVMErrorsOnRPCResponse --port=7545 >/dev/null 2>&1
+  node_modules/.bin/ganache-cli --defaultBalanceEther=1000 --noVMErrorsOnRPCResponse --accounts=20 --port=7545 >/dev/null 2>&1
 }
 
 if bc_client_running; then

@@ -2,7 +2,7 @@ module.exports = {
   //   port: 8555,
   //   testCommand: "truffle test --network coverage",
   //   compileCommand: "truffle compile --network coverage",
-  norpc: true,
+  norpc: false,
   port: 8555,
   testrpcOptions: "-p 8555 --defaultBalanceEther=1000",
   accounts: 20,

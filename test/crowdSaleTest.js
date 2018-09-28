@@ -715,7 +715,7 @@ contract("Vault Test", function(accounts) {
       value: await web3.utils.toWei("2", "ether").toString(),
       from: accounts[3]
     });
-    await daicoToken.transfer(accounts[50], 10000000, { from: accounts[3] });
+    await daicoToken.transfer(accounts[50], "10000000", { from: accounts[3] });
   });
   it("a daico member revokes his vault membership and transfers tokens to another daico member", async () => {
     await crowdSale.startNewRound();

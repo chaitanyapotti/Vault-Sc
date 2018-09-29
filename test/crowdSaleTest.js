@@ -757,4 +757,23 @@ contract("Vault Test", function(accounts) {
     await increaseTime(8000000);
     await killPollInstance.unFreezeTokens({ from: accounts[1] });
   });
+  it("a person who is not a vault member transfers tokens to a person who is both vault & daico member", async () => {
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[3]
+    });
+    await protocol1Contract.forfeitMembership({
+      from: accounts[3]
+    });
+    await daicoToken.transfer(accounts[2], "10000000", { from: accounts[3] });
+  });
 });

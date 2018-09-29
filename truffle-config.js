@@ -41,9 +41,9 @@ module.exports = {
     ropsten: {
       provider: new HDWalletProvider(
         "blue inherit drum enroll amused please camp false estate flash sell right",
-        "https://ropsten.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698"
-        // 0,
-        // 20
+        "https://ropsten.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+        0,
+        20
       ),
       network_id: "1",
       gas: 6900000,

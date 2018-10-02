@@ -43,6 +43,7 @@
     "truffle-assertions": "^0.5.0",
     "web3-provider-engine": "^14.0.6",
     "ethereumjs-wallet": "0.6.0",
+    "ethereumjs-abi": "0.6.5",
     "truffle-hdwallet-provider": "^1.0.0-web3one.0"
   },
   "devDependencies": {

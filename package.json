@@ -42,7 +42,7 @@
     "electusaction": "^1.2.3",
     "ethereumjs-wallet": "0.6.0",
     "truffle-assertions": "^0.5.0",
-    "truffle-hdwallet-provider": "0.0.6"
+    "truffle-hdwallet-provider": "^1.0.0-web3one.0"
   },
   "devDependencies": {
     "solidity-coverage": "^0.5.11",

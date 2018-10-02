@@ -63,5 +63,5 @@ workflows:
   version: 2
   commit:
     jobs:
-      - unit-test
+      # - unit-test
       - test-coverage

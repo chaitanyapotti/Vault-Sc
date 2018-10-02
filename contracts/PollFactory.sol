@@ -140,16 +140,24 @@ contract PollFactory is Treasury {
 
     function withdrawXfrAmount() external onlyOwner onlyDuringGovernance {
         uint withdrawlAmount = 0;
-        for (uint8 index = 0; index < xfrPollData.length; index++) {
-            XfrData storage pollData = xfrPollData[index];
-            BoundPoll xfrPoll = BoundPoll(pollData.xfrPollAddress);
-            if (xfrPoll.hasPollEnded()) {
-                if (canWithdrawXfr(index)) {
-                    withdrawlAmount = SafeMath.add(withdrawlAmount, pollData.amountRequested);  
-                }
-                pollData.xfrPollAddress = address(0);
-                pollData.amountRequested = 0;                    
-            }            
+        uint withdrawFactor = canWithdrawXfr();
+        XfrData storage pollData1 = xfrPollData[0];
+        XfrData storage pollData2 = xfrPollData[1];
+        if (withdrawFactor == 1) {
+            withdrawlAmount = SafeMath.add(withdrawlAmount, pollData1.amountRequested);  
+            pollData1.xfrPollAddress = address(0);
+            pollData1.amountRequested = 0;                       
+        } else if (withdrawFactor == 2) {
+            withdrawlAmount = SafeMath.add(withdrawlAmount, pollData2.amountRequested);  
+            pollData2.xfrPollAddress = address(0);
+            pollData2.amountRequested = 0;                    
+        } else if (withdrawFactor == 3) {
+            withdrawlAmount = SafeMath.add(withdrawlAmount, pollData2.amountRequested);  
+            withdrawlAmount = SafeMath.add(withdrawlAmount, pollData1.amountRequested);  
+            pollData2.xfrPollAddress = address(0);
+            pollData2.amountRequested = 0;
+            pollData1.xfrPollAddress = address(0);
+            pollData1.amountRequested = 0;
         }
         require(withdrawlAmount > 0, "No Withdrawable amount");
         teamAddress.transfer(withdrawlAmount);
@@ -200,17 +208,25 @@ contract PollFactory is Treasury {
         return false;
     }
 
-    function canWithdrawXfr(uint8 _pollNumber) public view returns (bool) {
-        require(_pollNumber <= 1, "Max 2 polls allowed at a time");
-        XfrData storage pollData = xfrPollData[_pollNumber];
-        require(pollData.xfrPollAddress != address(0), "No poll is running at that number");
-        BoundPoll xfrPoll = BoundPoll(pollData.xfrPollAddress);
+    function canWithdrawXfr() public view returns (uint) {
+        XfrData storage pollData = xfrPollData[0];
+        XfrData storage pollData1 = xfrPollData[1];
+        BoundPoll xfrPoll1 = BoundPoll(pollData.xfrPollAddress);
+        BoundPoll xfrPoll2 = BoundPoll(pollData1.xfrPollAddress);
+        uint returnedValue1 = 0;
+        uint returnedValue2 = 0;
+        
+        if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
+            xfrRejectionPercent && !canKill() && xfrPoll1.hasPollEnded()) {
+            returnedValue1 = 1;
+        }
 
-        if (SafeMath.div(xfrPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
-            xfrRejectionPercent && !canKill()) 
-            return true;
-
-        return false;
+        if (SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
+            xfrRejectionPercent && !canKill() && xfrPoll2.hasPollEnded()) {
+            returnedValue2 = 2;
+        }
+            
+        return returnedValue1 + returnedValue2;
     }
 
     function canKill() public onlyDuringGovernance view returns (bool) {        

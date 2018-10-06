@@ -1,5 +1,6 @@
 #Vault - Smart Contracts
 
+[![npm version](https://badge.fury.io/js/vault-sc.svg)](https://badge.fury.io/js/vault-sc)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/ElectusProtocol/Lobby)
 [![CircleCI](https://circleci.com/gh/chaitanyapotti/Vault-Sc/tree/master.svg?style=shield)](https://circleci.com/gh/chaitanyapotti/Vault-Sc/tree/master)
 [![Greenkeeper badge](https://badges.greenkeeper.io/chaitanyapotti/Vault-Sc.svg)](https://greenkeeper.io/)
@@ -82,10 +83,3 @@ If you find a security issue, please email [chaitanya@electus.network](mailto:ch
 ## Contributing
 
 For details about how to contribute you can check the [contributing page](CONTRIBUTING.md)
-
-TODO:
-
-deploy 1261 with a different private key
-in all of the above contracts, keep metadata called version.
-when a certain contract is upgraded, we will use the latest one for new DAICOs
-skin/interface can read which version is deployed

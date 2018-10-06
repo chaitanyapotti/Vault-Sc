@@ -100,13 +100,15 @@ contract("Vault Test", function(accounts) {
       daicoToken.address,
       accounts[15],
       "800000000000000000",
+      "14844355",
       presentTime + 12960,
       protocol2Contract.address,
       "900",
       "75",
       "35",
       "65",
-      lockedTokens.address
+      lockedTokens.address,
+      "150"
     );
 
     crowdSale = await CrowdSale.new(

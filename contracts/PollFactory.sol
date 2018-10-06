@@ -14,8 +14,7 @@ contract PollFactory is Treasury {
 
     uint public constant KILL_POLL_DURATION = 89 days; //seconds (89 days)
     uint public constant XFR_POLL_DURATION = 30 days; //seconds (30 days)
-    uint public constant TAP_INCREMENT_FACTOR = 150;
-
+    
     address[8] public killPollAddresses;
     uint public killPollStartDate;
     address public vaultMembershipAddress;
@@ -39,10 +38,11 @@ contract PollFactory is Treasury {
     event XfrPollCreated(address xfrAddress);
     event TapPollCreated(address tapPollAddress);
 
-    constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
+    constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, uint _initialTap,
     uint _killPollStartDate, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
-    uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress) 
-        public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress) {
+    uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress, uint _tapIncrementFactor) 
+        public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress, _initialTap, 
+        _tapIncrementFactor) {
             //check for cap maybe
             // cap is 10^2 multiplied to actual percentage - already in poll
             require(_killAcceptancePercent < 85, "Kill Acceptance should be less than 85 %");
@@ -54,6 +54,7 @@ contract PollFactory is Treasury {
             tapAcceptancePercent = _tapAcceptancePercent;
             vaultMembershipAddress = _vaultMembershipAddress;
             killPollStartDate = _killPollStartDate;
+            tapIncrementFactor = _tapIncrementFactor;
         }
 
     function createKillPolls() external {
@@ -105,7 +106,7 @@ contract PollFactory is Treasury {
             splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
                 pivotTime), currentTap));
             pivotTime = now;
-            currentTap = SafeMath.div(SafeMath.mul(TAP_INCREMENT_FACTOR, currentTap), 100);
+            currentTap = SafeMath.div(SafeMath.mul(tapIncrementFactor, currentTap), 100);
             delete tapPoll;
             emit TapIncreased(currentTap);
         }

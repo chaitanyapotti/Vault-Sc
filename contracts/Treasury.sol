@@ -13,8 +13,10 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         Governance,
         Killed
     }
+    
+    uint public constant VERSION = 1;
 
-    uint public constant INITIAL_TAP = 14844355; //wei/sec corresponds to approx 100 ether/month
+    uint public initialTap; //= 14844355; //wei/sec corresponds to approx 100 ether/month
     uint public currentTap; //wei/sec
     TreasuryState public state;
     DaicoToken public erc20Token;
@@ -25,16 +27,19 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     address public lockedTokenAddress;
     uint public pivotTime;
     uint public totalEtherRaised;
+    uint public tapIncrementFactor; // = 150;
 
     event RefundSent(address tokenHolder, uint256 amountWei, uint256 tokenAmount);
     event DaicoRefunded();
     
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
-        address _lockedTokenAddress) public {
-        erc20Token = DaicoToken(_erc20Token);        
+        address _lockedTokenAddress, uint _initialTap, uint _tapIncrementFactor) public {
+        erc20Token = DaicoToken(_erc20Token);
         teamAddress = _teamAddress;
         initalFundRelease = _initalFundRelease;
         lockedTokenAddress = _lockedTokenAddress;
+        initialTap = _initialTap;
+        tapIncrementFactor = _tapIncrementFactor;
     }
 
     modifier onlyCrowdSale() {
@@ -75,7 +80,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         state = TreasuryState.Governance;
         firstWithdrawAmount = initalFundRelease;
         pivotTime = now;
-        currentTap = INITIAL_TAP;
+        currentTap = initialTap;
     }    
 
     function enableCrowdsaleRefund() external onlyCrowdSale onlyDuringCrowdSale {

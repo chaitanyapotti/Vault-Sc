@@ -27,6 +27,8 @@ contract CrowdSale is Ownable {
         uint endTime;
     }
 
+    uint public constant VERSION = 1;
+
     RoundData[3] public roundDetails;
     DaicoToken public erc20Token;
     ICrowdSaleTreasury public treasury;

@@ -78,6 +78,7 @@ module.exports = async function(deployer, network, accounts) {
     "2000000000000000000",
     "5000000000000000000",
     presentTime + 12960,
+    presentTime,
     ["1000000000000000000000", "2000000000000000000000", "2000000000000000000000"],
     ["100", "200", "200"],
     lockedTokens.address,

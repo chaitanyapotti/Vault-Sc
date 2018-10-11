@@ -12,6 +12,7 @@ contract CrowdSale is Ownable {
         Round1,
         Round2,
         Round3,
+        R3Ended,
         CrowdSaleRefund
     }
 
@@ -25,6 +26,7 @@ contract CrowdSale is Ownable {
         uint tokenRate; //rate is in tokens/wei
         uint totalTokensSold;
         uint endTime;
+        uint startTime;
     }
 
     uint public constant VERSION = 1;
@@ -48,7 +50,7 @@ contract CrowdSale is Ownable {
 
     event LogContribution(address contributor, uint etherAmount, uint tokenAmount);
 
-    constructor (uint _etherMinContrib, uint _etherMaxContrib, uint _r1EndTime, 
+    constructor (uint _etherMinContrib, uint _etherMaxContrib, uint _r1EndTime, uint _r1StartTime,
         uint[3] _roundTokenCounts, uint[3] _roundtokenRates, address _lockedTokensAddress, 
         address _treasuryAddress, address _membershipAddress, address _erc20TokenAddress, 
         address _vaultMembershipAddress, address[] _foundationTokenWallets, uint[] _foundationAmounts) public {
@@ -71,13 +73,16 @@ contract CrowdSale is Ownable {
         etherMaxContrib = _etherMaxContrib;
 
         roundDetails[0] = RoundData({
-            tokenCount: _roundTokenCounts[0], tokenRate: _roundtokenRates[0], endTime: _r1EndTime, totalTokensSold: 0
+            tokenCount: _roundTokenCounts[0], tokenRate: _roundtokenRates[0], endTime: _r1EndTime, totalTokensSold: 0, 
+            startTime: _r1StartTime
         });
         roundDetails[1] = RoundData({
-            tokenCount: _roundTokenCounts[1], tokenRate: _roundtokenRates[1], endTime: 0, totalTokensSold: 0
+            tokenCount: _roundTokenCounts[1], tokenRate: _roundtokenRates[1], endTime: 0, totalTokensSold: 0, 
+            startTime: 0
         });
         roundDetails[2] = RoundData({
-            tokenCount: _roundTokenCounts[2], tokenRate: _roundtokenRates[2], endTime: 0, totalTokensSold: 0
+            tokenCount: _roundTokenCounts[2], tokenRate: _roundtokenRates[2], endTime: 0, totalTokensSold: 0, 
+            startTime: 0
         });
         paused = true;
     }
@@ -127,9 +132,12 @@ contract CrowdSale is Ownable {
         require(currentRound != Round.CrowdSaleRefund, "Crowdsale is killed already");
         require(currentRound != Round.Round3, "Already in round 3");
         require(now - currentRoundEndTime > 24 hours, "Must wait 24 hrs to start another round");
-        if (currentRoundEndTime != 0) {  
+        if (currentRoundEndTime != 0) {
             currentRound = Round(uint(currentRound) + 1);
+            RoundData storage roundInfo = roundDetails[uint(currentRound)];
+            roundInfo.startTime = now;
         } else {
+            require(now > roundDetails[0].startTime, "Can't start yet");
             require(now < roundDetails[0].endTime, "First round has elapsed");
             require(treasury.isKillPollDeployed(), "Kills have not been deployed");
             currentRoundEndTime = roundDetails[0].endTime;
@@ -196,6 +204,7 @@ contract CrowdSale is Ownable {
 
         if (round == 2 && weiLeft > 0) {
             erc20Token.finishMinting();
+            currentRound = Round.R3Ended;
             _contributor.transfer(weiLeft);  //address.transfer
         }
     }

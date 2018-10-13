@@ -71,7 +71,8 @@ contract("Vault Test", function(accounts) {
       "20",
       "65",
       lockedTokens.address,
-      "150"
+      "150",
+      { gas: "8000000" }
     );
     crowdSale = await CrowdSale.new(
       "2000000000000000000",

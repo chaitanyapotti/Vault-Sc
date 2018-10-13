@@ -1,6 +1,7 @@
 pragma solidity ^0.4.25;
 
 import "electusvoting/contracts/poll/TokenProportionalCapped.sol";
+import "../Token/DaicoToken.sol";
 
 
 contract UnBoundPoll is TokenProportionalCapped {
@@ -15,5 +16,17 @@ contract UnBoundPoll is TokenProportionalCapped {
         //this is vault address and not 1261 of treasury
         IERC1261 contract1 = IERC1261(protocolAddresses[0]);
         return (contract1.isCurrentMember(_to));
+    }
+
+    function getVoterBaseDenominator() public view returns (uint) {
+        DaicoToken daicoToken = DaicoToken(address(token));
+        if (proposals.length <= 1) {
+            return daicoToken.getTokensUnderGovernance();
+        }
+        uint proposalWeight = 0;
+        for (uint8 index = 0; index < proposals.length; index++) {
+            proposalWeight += proposals[index].voteWeight;
+        }
+        return proposalWeight;
     }
 }

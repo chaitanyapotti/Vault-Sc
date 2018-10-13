@@ -144,21 +144,14 @@ contract PollFactory is Treasury {
         uint withdrawFactor = canWithdrawXfr();
         XfrData storage pollData1 = xfrPollData[0];
         XfrData storage pollData2 = xfrPollData[1];
-        if (withdrawFactor == 1) {
+        if (withdrawFactor == 1 || withdrawFactor == 3) {
             withdrawlAmount = SafeMath.add(withdrawlAmount, pollData1.amountRequested);  
             pollData1.xfrPollAddress = address(0);
             pollData1.amountRequested = 0;                       
-        } else if (withdrawFactor == 2) {
+        } else if (withdrawFactor == 2 || withdrawFactor == 3) {
             withdrawlAmount = SafeMath.add(withdrawlAmount, pollData2.amountRequested);  
             pollData2.xfrPollAddress = address(0);
             pollData2.amountRequested = 0;                    
-        } else if (withdrawFactor == 3) {
-            withdrawlAmount = SafeMath.add(withdrawlAmount, pollData2.amountRequested);  
-            withdrawlAmount = SafeMath.add(withdrawlAmount, pollData1.amountRequested);  
-            pollData2.xfrPollAddress = address(0);
-            pollData2.amountRequested = 0;
-            pollData1.xfrPollAddress = address(0);
-            pollData1.amountRequested = 0;
         }
         require(withdrawlAmount > 0, "No Withdrawable amount");
         teamAddress.transfer(withdrawlAmount);
@@ -216,17 +209,17 @@ contract PollFactory is Treasury {
         BoundPoll xfrPoll2 = BoundPoll(pollData1.xfrPollAddress);
         uint returnedValue1 = 0;
         uint returnedValue2 = 0;
-        
-        if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
-            xfrRejectionPercent && !canKill() && xfrPoll1.hasPollEnded()) {
-            returnedValue1 = 1;
-        }
+        if (!canKill()) {
+            if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
+            xfrRejectionPercent && xfrPoll1.hasPollEnded()) {
+                returnedValue1 = 1;
+            }
 
-        if (SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
-            xfrRejectionPercent && !canKill() && xfrPoll2.hasPollEnded()) {
-            returnedValue2 = 2;
-        }
-            
+            if (SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
+            xfrRejectionPercent && xfrPoll2.hasPollEnded()) {
+                returnedValue2 = 2;
+            }
+        }            
         return returnedValue1 + returnedValue2;
     }
 

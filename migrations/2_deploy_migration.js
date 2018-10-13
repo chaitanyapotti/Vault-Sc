@@ -71,8 +71,7 @@ module.exports = async function(deployer, network, accounts) {
     "20",
     "65",
     lockedTokens.address,
-    "150",
-    { gas: "8000000" }
+    "150"
   );
   console.log("Poll Factory Contract: ", pollFactory.address);
   crowdSale = await CrowdSale.new(

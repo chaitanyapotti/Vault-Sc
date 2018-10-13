@@ -59,20 +59,37 @@ module.exports = async function(deployer, network, accounts) {
   lockedTokens = await LockedTokens.new(daicoToken.address);
   console.log("Locked Token Contract: ", lockedTokens.address);
   presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
-  pollFactory = await PollFactory.new(
-    daicoToken.address,
-    accounts[6],
-    "1000000000000000000",
-    "14844355",
-    presentTime + 12960,
-    protocol2Contract.address,
-    "10",
-    "80",
-    "20",
-    "65",
-    lockedTokens.address,
-    "150"
-  );
+  pollFactory =
+    network === "development"
+      ? await PollFactory.new(
+          daicoToken.address,
+          accounts[6],
+          "1000000000000000000",
+          "14844355",
+          presentTime + 12960,
+          protocol2Contract.address,
+          "10",
+          "80",
+          "20",
+          "65",
+          lockedTokens.address,
+          "150",
+          { gas: 7000000 }
+        )
+      : await PollFactory.new(
+          daicoToken.address,
+          accounts[6],
+          "1000000000000000000",
+          "14844355",
+          presentTime + 12960,
+          protocol2Contract.address,
+          "10",
+          "80",
+          "20",
+          "65",
+          lockedTokens.address,
+          "150"
+        );
   console.log("Poll Factory Contract: ", pollFactory.address);
   crowdSale = await CrowdSale.new(
     "2000000000000000000",

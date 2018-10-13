@@ -148,7 +148,8 @@ contract PollFactory is Treasury {
             withdrawlAmount = SafeMath.add(withdrawlAmount, pollData1.amountRequested);  
             pollData1.xfrPollAddress = address(0);
             pollData1.amountRequested = 0;                       
-        } else if (withdrawFactor == 2 || withdrawFactor == 3) {
+        } 
+        if (withdrawFactor == 2 || withdrawFactor == 3) {
             withdrawlAmount = SafeMath.add(withdrawlAmount, pollData2.amountRequested);  
             pollData2.xfrPollAddress = address(0);
             pollData2.amountRequested = 0;                    

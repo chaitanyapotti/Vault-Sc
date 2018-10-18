@@ -564,7 +564,7 @@ contract("Vault Test", function(accounts) {
       value: await web3.utils.toWei("3", "ether").toString(),
       from: accounts[3]
     });
-    await increaseTime(693658000000);
+    await increaseTime(6936580000);
     const result = await pollFactory.withdrawAmount("10000000000000000");
     truffleAssert.eventEmitted(result, "Withdraw");
   });

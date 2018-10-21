@@ -1,7 +1,8 @@
 pragma solidity ^0.4.25;
 
-import "./Token/LockedTokens.sol";
-import "./Token/DaicoToken.sol";
+import "./Interfaces/ILockedTokens.sol";
+import "./Interfaces/IDaicoToken.sol";
+import "electusprotocol/contracts/Protocol/IElectusProtocol.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Interfaces/ICrowdSaleTreasury.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol"; //need to check if necessary
@@ -32,9 +33,9 @@ contract CrowdSale is Ownable {
     uint public constant VERSION = 1;
 
     RoundData[3] public roundDetails;
-    DaicoToken public erc20Token;
+    IDaicoToken public erc20Token;
     ICrowdSaleTreasury public treasury;
-    LockedTokens public lockedTokens;
+    ILockedTokens public lockedTokens;
     IERC1261 public vaultMembership;
     IERC1261 public membership;
 
@@ -55,8 +56,8 @@ contract CrowdSale is Ownable {
         address _treasuryAddress, address _membershipAddress, address _erc20TokenAddress, 
         address _vaultMembershipAddress, address[] _foundationTokenWallets, uint[] _foundationAmounts) public {
 
-        lockedTokens = LockedTokens(_lockedTokensAddress);
-        erc20Token = DaicoToken(_erc20TokenAddress);
+        lockedTokens = ILockedTokens(_lockedTokensAddress);
+        erc20Token = IDaicoToken(_erc20TokenAddress);
         vaultMembership = IERC1261(_vaultMembershipAddress);
         treasury = ICrowdSaleTreasury(_treasuryAddress);
         membership = IERC1261(_membershipAddress);
@@ -106,7 +107,7 @@ contract CrowdSale is Ownable {
         mintedFoundationTokens = true;
         uint foundationTokensTotal = 0;        
         for (uint index = 0; index < foundationTokenWallets.length; index++) {
-            foundationTokensTotal += foundationAmounts[index];
+            foundationTokensTotal = SafeMath.add(foundationTokensTotal, foundationAmounts[index]);
             lockedTokens.addTokens(foundationTokenWallets[index], foundationAmounts[index], now + 365 days);
         }
         RoundData storage round1Info = roundDetails[0];

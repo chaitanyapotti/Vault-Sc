@@ -17,7 +17,7 @@ contract PollFactory is Treasury {
     
     address[8] public killPollAddresses;
     uint public killPollStartDate;
-    address public vaultMembershipAddress;
+    address[] public vaultMembershipAddress;
     XfrData[2] public xfrPollData;
     BoundPoll public currentKillPoll;
     UnBoundPoll public tapPoll;
@@ -52,7 +52,7 @@ contract PollFactory is Treasury {
             killAcceptancePercent = _killAcceptancePercent;
             xfrRejectionPercent = _xfrRejectionPercent;
             tapAcceptancePercent = _tapAcceptancePercent;
-            vaultMembershipAddress = _vaultMembershipAddress;
+            vaultMembershipAddress.push(_vaultMembershipAddress);
             killPollStartDate = _killPollStartDate;
             tapIncrementFactor = _tapIncrementFactor;
         }
@@ -87,11 +87,9 @@ contract PollFactory is Treasury {
 
     function createTapIncrementPoll() external onlyOwner onlyDuringGovernance {        
         require(address(tapPoll) == 0, "Tap Increment poll already exists");
-        address[] memory protocol = new address[](1);
-        protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
         proposal[0] = stringToBytes32("yes");
-        tapPoll = new UnBoundPoll(protocol, proposal, erc20Token, capPercent, 
+        tapPoll = new UnBoundPoll(vaultMembershipAddress, proposal, erc20Token, capPercent, 
             stringToBytes32("Vault"), 
             stringToBytes32("Tap Increment Poll"), 
             stringToBytes32("Token Proportional Capped")
@@ -123,11 +121,9 @@ contract PollFactory is Treasury {
         }
         require(_amountToWithdraw <= SafeMath.div(address(this).balance, 10), "Can't withdraw > 10% of balance");
         XfrData storage pollData = xfrPollData[_pollNumber];
-        address[] memory protocol = new address[](1);
-        protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
         proposal[0] = stringToBytes32("No");
-        address xfrPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
+        address xfrPoll = new BoundPoll(vaultMembershipAddress, proposal, erc20Token, capPercent, 
                 stringToBytes32("Vault"), 
                 stringToBytes32("Exceptional Fund Request"), 
                 stringToBytes32("Token Proportional Capped Bound"),
@@ -238,12 +234,10 @@ contract PollFactory is Treasury {
     }
 
     function createKillPoll(uint8 index) internal {
-        address[] memory protocol = new address[](1);
-        protocol[0] = vaultMembershipAddress;
         bytes32[] memory proposal = new bytes32[](1);
         proposal[0] = stringToBytes32("yes");
         uint startDate = killPollStartDate + index * (90 days);
-        address killPoll = new BoundPoll(protocol, proposal, erc20Token, capPercent, 
+        address killPoll = new BoundPoll(vaultMembershipAddress, proposal, erc20Token, capPercent, 
             stringToBytes32("Vault"), 
             stringToBytes32("Kill"), 
             stringToBytes32("Token Proportional Capped Bound"),

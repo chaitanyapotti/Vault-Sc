@@ -1,6 +1,6 @@
 pragma solidity ^0.4.25;
 
-import "./Token/DaicoToken.sol";
+import "./Interfaces/IDaicoToken.sol";
 import "./Interfaces/ICrowdSaleTreasury.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -19,7 +19,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     uint public initialTap; //= 14844355; //wei/sec corresponds to approx 100 ether/month
     uint public currentTap; //wei/sec
     TreasuryState public state;
-    DaicoToken public erc20Token;
+    IDaicoToken public erc20Token;
     address public crowdSaleAddress;
     address public teamAddress;
     uint public initalFundRelease;
@@ -33,7 +33,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
         address _lockedTokenAddress, uint _initialTap, uint _tapIncrementFactor) public {
-        erc20Token = DaicoToken(_erc20Token);
+        erc20Token = IDaicoToken(_erc20Token);
         teamAddress = _teamAddress;
         initalFundRelease = _initalFundRelease;
         lockedTokenAddress = _lockedTokenAddress;

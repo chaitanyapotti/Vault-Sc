@@ -248,7 +248,7 @@ contract("Vault Test", function(accounts) {
       value: await web3.utils.toWei("3", "ether").toString(),
       from: accounts[3]
     });
-    const result = await pollFactory.firstWithdraw();
+    const result = await pollFactory.withdrawAmount("100");
     truffleAssert.eventEmitted(result, "Withdraw");
   });
   it("can with draw method success : returns true", async () => {

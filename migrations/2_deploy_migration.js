@@ -3,6 +3,7 @@ var DaicoToken = artifacts.require("./DaicoToken.sol");
 var LockedTokens = artifacts.require("./LockedTokens.sol");
 var PollFactory = artifacts.require("./PollFactory.sol");
 var CrowdSale = artifacts.require("./CrowdSale.sol");
+var VaultContract = artifacts.require("./Vault.sol");
 
 module.exports = async function(deployer, network, accounts) {
   let protocol1Contract;
@@ -12,7 +13,7 @@ module.exports = async function(deployer, network, accounts) {
   let pollFactory;
   let crowdSale;
   let presentTime;
-  protocol1Contract = await ElectusProtocol.new("0x57616e636861696e", "0x57414e");
+  protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", "100000");
   await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
   await protocol1Contract.assignTo(accounts[1], [0], {
     from: accounts[0]

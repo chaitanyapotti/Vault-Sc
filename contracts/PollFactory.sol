@@ -159,6 +159,13 @@ contract PollFactory is Treasury {
         emit Withdraw(withdrawlAmount);
     }
 
+    function onCrowdSaleR1End() external onlyCrowdSale {
+        state = TreasuryState.Governance;
+        splineHeightAtPivot = initalFundRelease;
+        pivotTime = now;
+        currentTap = initialTap;
+    }
+
     function withdrawAmount(uint _amount) external onlyOwner onlyDuringGovernance {
         require(canWithdraw(), "cannot withdraw now");
         require(_amount < address(this).balance, "Insufficient funds");
@@ -167,18 +174,9 @@ contract PollFactory is Treasury {
         require(_amount <= splineHeightAtPivot - withdrawnTillNow, "Not allowed");
         pivotTime = now;
         splineHeightAtPivot = SafeMath.sub(splineHeightAtPivot, _amount);
-        withdrawnTillNow += _amount;
+        withdrawnTillNow += _amount;    
         teamAddress.transfer(_amount);
         emit Withdraw(_amount);
-    }
-
-    function firstWithdraw() external onlyOwner onlyDuringGovernance {
-        require(firstWithdrawAmount > 0);
-        uint amount = firstWithdrawAmount;
-        firstWithdrawAmount = 0;
-        require(amount < SafeMath.div(address(this).balance, 10), "Can't withdraw such amount");
-        teamAddress.transfer(amount);
-        emit Withdraw(amount);
     }
 
     function isPollAddress(address _address) external view returns (bool) {
@@ -256,10 +254,6 @@ contract PollFactory is Treasury {
     }
 
     function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
-        bytes memory tempEmptyStringTest = bytes(source);
-        if (tempEmptyStringTest.length == 0) {
-            return 0x0;
-        }
         // solhint-disable-next-line
         assembly {
             result := mload(add(source, 32))

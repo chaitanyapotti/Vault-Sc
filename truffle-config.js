@@ -16,50 +16,50 @@ module.exports = {
       gasPrice: 0x01, // <-- Use this low gas price
       network_id: "1999"
     }
-    //   kovan: {
-    //     provider: new HDWalletProvider(
-    //       "blue inherit drum enroll amused please camp false estate flash sell right",
-    //       "https://kovan.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
-    //       0,
-    //       20
-    //     ),
-    //     network_id: "42",
-    //     gas: 6900000,
-    //     gasPrice: 100000000000
-    //   },
-    //   rinkeby: {
-    //     provider: new HDWalletProvider(
-    //       "blue inherit drum enroll amused please camp false estate flash sell right",
-    //       "https://rinkeby.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
-    //       0,
-    //       20
-    //     ),
-    //     network_id: "3",
-    //     gas: 6900000,
-    //     gasPrice: 100000000000
-    //   },
-    //   ropsten: {
-    //     provider: new HDWalletProvider(
-    //       "blue inherit drum enroll amused please camp false estate flash sell right",
-    //       "https://ropsten.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
-    //       0,
-    //       20
-    //     ),
-    //     network_id: "1",
-    //     gas: 6900000,
-    //     gasPrice: 100000000000
-    //   },
-    //   main: {
-    //     provider: new HDWalletProvider(
-    //       "blue inherit drum enroll amused please camp false estate flash sell right",
-    //       "https://mainnet.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
-    //       0,
-    //       20
-    //     ),
-    //     network_id: "0",
-    //     gas: 6900000,
-    //     gasPrice: 100000000000
-    //   }
+    // kovan: {
+    //   provider: new HDWalletProvider(
+    //     "blue inherit drum enroll amused please camp false estate flash sell right",
+    //     "https://kovan.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+    //     0,
+    //     20
+    //   ),
+    //   network_id: "42",
+    //   gas: 6900000,
+    //   gasPrice: 10000000000
+    // },
+    // rinkeby: {
+    //   provider: new HDWalletProvider(
+    //     "blue inherit drum enroll amused please camp false estate flash sell right",
+    //     "https://rinkeby.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+    //     0,
+    //     20
+    //   ),
+    //   network_id: "3",
+    //   gas: 6900000,
+    //   gasPrice: 10000000000
+    // },
+    // ropsten: {
+    //   provider: new HDWalletProvider(
+    //     "blue inherit drum enroll amused please camp false estate flash sell right",
+    //     "https://ropsten.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+    //     0,
+    //     20
+    //   ),
+    //   network_id: "1",
+    //   gas: 6900000,
+    //   gasPrice: 10000000000
+    // },
+    // main: {
+    //   provider: new HDWalletProvider(
+    //     "blue inherit drum enroll amused please camp false estate flash sell right",
+    //     "https://mainnet.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+    //     0,
+    //     20
+    //   ),
+    //   network_id: "0",
+    //   gas: 6900000,
+    //   gasPrice: 1000000000
+    // }
   },
   mocha: {
     useColors: true

@@ -9,6 +9,9 @@ contract Vault is ERC1261MetaData {
         uint[] attributes;
     }
 
+    event ApprovedMembership(address indexed _user);
+    event RequestedMembership(address indexed _user);
+
     mapping(address => PendingRequest) public pendingRequests;
 
     uint public fee;
@@ -30,6 +33,7 @@ contract Vault is ERC1261MetaData {
         request.isPending = true;
         request.attributes = _attributeIndexes;
         address admin = owner();
+        emit RequestedMembership(msg.sender);
         admin.transfer(msg.value);
     }
 
@@ -37,6 +41,7 @@ contract Vault is ERC1261MetaData {
         PendingRequest storage request = pendingRequests[_user];
         require(request.isPending, "Hasn't sent ether yet");
         super._assign(_user, request.attributes);
+        emit ApprovedMembership(_user);
     }
 
     function discardRequest(address _user) external onlyOwner {

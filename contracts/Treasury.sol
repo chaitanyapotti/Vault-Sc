@@ -21,7 +21,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     TreasuryState public state;
     DaicoToken public erc20Token;
     address public crowdSaleAddress;
-    uint public firstWithdrawAmount;
     address public teamAddress;
     uint public initalFundRelease;
     address public lockedTokenAddress;
@@ -76,12 +75,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         state = TreasuryState.CrowdSale;
     }
 
-    function onCrowdSaleR1End() external onlyCrowdSale {
-        state = TreasuryState.Governance;
-        firstWithdrawAmount = initalFundRelease;
-        pivotTime = now;
-        currentTap = initialTap;
-    }    
+    function onCrowdSaleR1End() external;
 
     function enableCrowdsaleRefund() external onlyCrowdSale onlyDuringCrowdSale {
         state = TreasuryState.CrowdSaleRefund;

@@ -97,6 +97,7 @@ contract("Vault Test", function(accounts) {
     await crowdSale.mintFoundationTokens();
   });
   it("start round 1 : success", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     const r1EndTime = await crowdSale.currentRoundEndTime();
     assert.equal(web3.utils.toDecimal(r1EndTime), presentTime + 12960);
@@ -397,6 +398,7 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("start round 3: success", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("5", "ether").toString(),
@@ -672,6 +674,7 @@ contract("Vault Test", function(accounts) {
     await daicoToken.burn(10000000, { from: accounts[3] });
   });
   it("transfers tokens", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("5", "ether").toString(),

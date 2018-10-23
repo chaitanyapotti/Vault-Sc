@@ -124,7 +124,7 @@ contract("Vault Test", function(accounts) {
       presentTime + 1,
       0
     );
-    newBoundPoll = await unBoundPoll.new(
+    newBoundPoll = await boundPoll.new(
       [protocol2Contract.address],
       ["0x68656c6c6f", "0x776f726c64"],
       daicoToken.address,

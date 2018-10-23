@@ -7,6 +7,7 @@ const increaseTime = require("./utils/increaseTime");
 const truffleAssert = require("truffle-assertions");
 var boundPoll = artifacts.require("./BoundPoll.sol");
 var unBoundPoll = artifacts.require("./UnBoundPoll.sol");
+var VaultContract = artifacts.require("./Vault.sol");
 
 contract("Vault Test", function(accounts) {
   let protocol1Contract;
@@ -17,7 +18,7 @@ contract("Vault Test", function(accounts) {
   let crowdSale;
   let presentTime;
   beforeEach("setup", async () => {
-    protocol1Contract = await ElectusProtocol.new("0x57616e636861696e", "0x57414e");
+    protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol1Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
@@ -51,7 +52,7 @@ contract("Vault Test", function(accounts) {
       from: accounts[0]
     });
 
-    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543");
+    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
 
     await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
 
@@ -99,7 +100,7 @@ contract("Vault Test", function(accounts) {
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[15],
-      "800000000000000000",
+      "10000000000000000",
       "14844355",
       presentTime + 12960,
       protocol2Contract.address,
@@ -150,6 +151,7 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("execute kill success ", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("1", "ether").toString(),
@@ -207,6 +209,7 @@ contract("Vault Test", function(accounts) {
     truffleAssert.eventEmitted(result1, "RefundSent");
   });
   it("execute kill failure: returns false in can kill check", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -235,6 +238,7 @@ contract("Vault Test", function(accounts) {
     assert.equal(web3.utils.toDecimal(currentkillPollIndex), 1);
   });
   it("first with draw success", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -252,6 +256,7 @@ contract("Vault Test", function(accounts) {
     truffleAssert.eventEmitted(result, "Withdraw");
   });
   it("can with draw method success : returns true", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -269,6 +274,7 @@ contract("Vault Test", function(accounts) {
     assert.equal(result, true);
   });
   it("create tap increment poll: success", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -286,6 +292,7 @@ contract("Vault Test", function(accounts) {
     truffleAssert.eventEmitted(result, "TapPollCreated");
   });
   it("create tap increment poll failure: tries to create tap poll when a tap exists already", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -308,6 +315,7 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("increase tap failure", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -332,6 +340,7 @@ contract("Vault Test", function(accounts) {
     assert.equal(result, false);
   });
   it("can increase tap success ", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("1", "ether").toString(),
@@ -391,6 +400,7 @@ contract("Vault Test", function(accounts) {
     truffleAssert.eventEmitted(result, "TapIncreased");
   });
   it("createXfr success", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -408,6 +418,7 @@ contract("Vault Test", function(accounts) {
     truffleAssert.eventEmitted(result, "XfrPollCreated");
   });
   it("createXfr success failure: tries to create 3rd XFR", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -430,6 +441,7 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("createXfr success failure: Can't withdraw more than 10% of balance", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -450,6 +462,7 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("withdraw xfr amount success", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -470,6 +483,7 @@ contract("Vault Test", function(accounts) {
     truffleAssert.eventEmitted(withdraw, "Withdraw");
   });
   it("withdraw xfr amount failure : poll has not ended", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -492,6 +506,7 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("withdraw xfr amount failure : can kill is true so withdraw for xfr fails", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("1", "ether").toString(),
@@ -551,6 +566,7 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("withdraw amount success", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("3", "ether").toString(),
@@ -569,6 +585,7 @@ contract("Vault Test", function(accounts) {
     truffleAssert.eventEmitted(result, "Withdraw");
   });
   it("withdraw amount failure : can withdraw returns false", async () => {
+    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("1", "ether").toString(),

@@ -3,6 +3,7 @@ var DaicoToken = artifacts.require("./DaicoToken.sol");
 var LockedTokens = artifacts.require("./LockedTokens.sol");
 var PollFactory = artifacts.require("./PollFactory.sol");
 var CrowdSale = artifacts.require("./CrowdSale.sol");
+var VaultContract = artifacts.require("./Vault.sol");
 contract("Vault Test", function(accounts) {
   let protocol1Contract;
   let protocol2Contract;
@@ -12,7 +13,7 @@ contract("Vault Test", function(accounts) {
   let crowdSale;
   let presentTime;
   beforeEach("setup", async () => {
-    protocol1Contract = await ElectusProtocol.new("0x57616e636861696e", "0x57414e");
+    protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol1Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
@@ -29,7 +30,7 @@ contract("Vault Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[5], [0], {
       from: accounts[0]
     });
-    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543");
+    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
     await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol2Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
@@ -52,7 +53,7 @@ contract("Vault Test", function(accounts) {
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[6],
-      "1000000000000000000",
+      "10000000000000000",
       "14844355",
       presentTime + 129600,
       protocol2Contract.address,

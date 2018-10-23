@@ -6,6 +6,7 @@ var CrowdSale = artifacts.require("./CrowdSale.sol");
 const increaseTime = require("./utils/increaseTime");
 const truffleAssert = require("truffle-assertions");
 var boundPoll = artifacts.require("./BoundPoll.sol");
+var VaultContract = artifacts.require("./Vault.sol");
 
 contract("Vault Test", function(accounts) {
   let protocol1Contract;
@@ -16,7 +17,7 @@ contract("Vault Test", function(accounts) {
   let crowdSale;
   let presentTime;
   beforeEach("setup", async () => {
-    protocol1Contract = await ElectusProtocol.new("0x57616e636861696e", "0x57414e");
+    protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol1Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
@@ -36,7 +37,7 @@ contract("Vault Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[6], [0], {
       from: accounts[0]
     });
-    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543");
+    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
     await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol2Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
@@ -62,7 +63,7 @@ contract("Vault Test", function(accounts) {
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[6],
-      "1000000000000000000",
+      "790000000000000000",
       "14844355",
       presentTime + 12960,
       protocol2Contract.address,
@@ -95,9 +96,9 @@ contract("Vault Test", function(accounts) {
     await pollFactory.createKillPolls();
     await pollFactory.createRemainingKillPolls();
     await crowdSale.mintFoundationTokens();
+    await increaseTime(10000);
   });
   it("start round 1 : success", async () => {
-    await increaseTime(10000);
     await crowdSale.startNewRound();
     const r1EndTime = await crowdSale.currentRoundEndTime();
     assert.equal(web3.utils.toDecimal(r1EndTime), presentTime + 12960);
@@ -398,7 +399,6 @@ contract("Vault Test", function(accounts) {
     }
   });
   it("start round 3: success", async () => {
-    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("5", "ether").toString(),
@@ -558,57 +558,6 @@ contract("Vault Test", function(accounts) {
       assert.exists(err);
     }
   });
-  it("process contribution failure: tries to contribute after round3 ends", async () => {
-    await crowdSale.startNewRound();
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("5", "ether").toString(),
-      from: accounts[1]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("3", "ether").toString(),
-      from: accounts[2]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("2", "ether").toString(),
-      from: accounts[3]
-    });
-    await increaseTime(100000);
-    await crowdSale.startNewRound();
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("5", "ether").toString(),
-      from: accounts[1]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("3", "ether").toString(),
-      from: accounts[2]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("2", "ether").toString(),
-      from: accounts[3]
-    });
-    await increaseTime(100000);
-    await crowdSale.startNewRound();
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("5", "ether").toString(),
-      from: accounts[1]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("3", "ether").toString(),
-      from: accounts[2]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("2", "ether").toString(),
-      from: accounts[3]
-    });
-    try {
-      await crowdSale.sendTransaction({
-        value: await web3.utils.toWei("2", "ether").toString(),
-        from: accounts[4]
-      });
-    } catch (err) {
-      assert.exists(err);
-    }
-  });
   it("round 3 tokens overshoot success: refunds weileft to the member", async () => {
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
@@ -674,7 +623,6 @@ contract("Vault Test", function(accounts) {
     await daicoToken.burn(10000000, { from: accounts[3] });
   });
   it("transfers tokens", async () => {
-    await increaseTime(10000);
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
       value: await web3.utils.toWei("5", "ether").toString(),
@@ -705,7 +653,9 @@ contract("Vault Test", function(accounts) {
       from: accounts[3]
     });
     await daicoToken.approve(accounts[2], 10000000, { from: accounts[3] });
-    await daicoToken.transferFrom(accounts[3], accounts[2], 10000000, { from: accounts[2] });
+    await daicoToken.transferFrom(accounts[3], accounts[2], 10000000, {
+      from: accounts[2]
+    });
   });
   it("transfers tokens to a person who is not a vault member", async () => {
     await crowdSale.startNewRound();

@@ -110,14 +110,14 @@ contract("Vault Test", function(accounts) {
   });
   it("request vault membership", async () => {
     result = await protocol1Contract.requestMembership([0, 0], {
-      from: accounts[30],
+      from: accounts[13],
       value: await web3.utils.toWei("1", "ether").toString()
     });
     truffleAssert.eventEmitted(result, "RequestedMembership");
   });
   it("request vault membership - case 2", async () => {
     result = await protocol1Contract.requestMembership([0, 1], {
-      from: accounts[30],
+      from: accounts[13],
       value: await web3.utils.toWei("1", "ether").toString()
     });
     truffleAssert.eventEmitted(result, "RequestedMembership");

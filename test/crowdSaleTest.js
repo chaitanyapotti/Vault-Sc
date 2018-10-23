@@ -38,7 +38,7 @@ contract("Vault Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[6], [0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[25], [0, 0], {
+    await protocol1Contract.assignTo(accounts[17], [0, 0], {
       from: accounts[0]
     });
     protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
@@ -103,7 +103,7 @@ contract("Vault Test", function(accounts) {
   });
   it("request membership", async () => {
     result = await protocol2Contract.requestMembership([], {
-      from: accounts[25]
+      from: accounts[17]
     });
     truffleAssert.eventEmitted(result, "RequestedMembership");
     truffleAssert.eventEmitted(result, "Assigned");

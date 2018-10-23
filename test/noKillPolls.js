@@ -4,6 +4,7 @@ var LockedTokens = artifacts.require("./LockedTokens.sol");
 var PollFactory = artifacts.require("./PollFactory.sol");
 var CrowdSale = artifacts.require("./CrowdSale.sol");
 var VaultContract = artifacts.require("./Vault.sol");
+const increaseTime = require("./utils/increaseTime");
 contract("Vault Test", function(accounts) {
   let protocol1Contract;
   let protocol2Contract;
@@ -84,6 +85,7 @@ contract("Vault Test", function(accounts) {
     await lockedTokens.setCrowdSaleAddress(crowdSale.address);
     await pollFactory.setCrowdSaleAddress(crowdSale.address);
     await crowdSale.mintFoundationTokens();
+    await increaseTime(10000);
   });
   it("start round1 failure : kill polls not deployed", async () => {
     try {

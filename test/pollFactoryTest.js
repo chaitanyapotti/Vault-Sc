@@ -17,6 +17,8 @@ contract("Vault Test", function(accounts) {
   let pollFactory;
   let crowdSale;
   let presentTime;
+  let newUnBoundPoll;
+  let newBoundPoll;
   beforeEach("setup", async () => {
     protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
@@ -111,7 +113,28 @@ contract("Vault Test", function(accounts) {
       lockedTokens.address,
       "150"
     );
-
+    newUnBoundPoll = await unBoundPoll.new(
+      [protocol2Contract.address],
+      ["0x68656c6c6f", "0x776f726c64"],
+      daicoToken.address,
+      "900",
+      "0x68656c6c6f",
+      "0x776f726c64",
+      "0x776f726c64",
+      presentTime + 1,
+      0
+    );
+    newBoundPoll = await unBoundPoll.new(
+      [protocol2Contract.address],
+      ["0x68656c6c6f", "0x776f726c64"],
+      daicoToken.address,
+      "900",
+      "0x68656c6c6f",
+      "0x776f726c64",
+      "0x776f726c64",
+      presentTime + 1,
+      1000000000
+    );
     crowdSale = await CrowdSale.new(
       "1000000000000000000",
       "5000000000000000000",
@@ -201,7 +224,7 @@ contract("Vault Test", function(accounts) {
     await killPollInstance.vote(0, { from: accounts[7] });
     await killPollInstance.vote(0, { from: accounts[8] });
     await killPollInstance.vote(0, { from: accounts[9] });
-
+    await killPollInstance.getVoterBaseDenominator();
     await increaseTime(10000000);
     const result = await pollFactory.executeKill();
     const result1 = await pollFactory.refundByKill({ from: accounts[1] });
@@ -336,6 +359,7 @@ contract("Vault Test", function(accounts) {
     await tapPollInstance.vote(0, { from: accounts[1] });
     await tapPollInstance.vote(0, { from: accounts[2] });
     await tapPollInstance.vote(0, { from: accounts[3] });
+    await tapPollInstance.getVoterBaseDenominator();
     const result = await pollFactory.canIncreaseTap();
     assert.equal(result, false);
   });
@@ -641,5 +665,41 @@ contract("Vault Test", function(accounts) {
     } catch (err) {
       assert.exists(err);
     }
+  });
+  it("get voter base denominator for unbound poll", async () => {
+    await increaseTime(10000);
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await increaseTime(100);
+    await newUnBoundPoll.getVoterBaseDenominator();
+  });
+  it("get voter base denominator for bound poll", async () => {
+    await increaseTime(10000);
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await increaseTime(100);
+    await newBoundPoll.getVoterBaseDenominator();
   });
 });

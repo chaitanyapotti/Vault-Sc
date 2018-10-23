@@ -19,6 +19,7 @@ contract("Vault Test", function(accounts) {
   beforeEach("setup", async () => {
     protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
+    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("Country"), [web3.utils.fromAscii("India"), web3.utils.fromAscii("Singapore")]);
     await protocol1Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
     });
@@ -37,24 +38,26 @@ contract("Vault Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[6], [0], {
       from: accounts[0]
     });
+    await protocol1Contract.assignTo(accounts[25], [0, 0], {
+      from: accounts[0]
+    });
     protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
-    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
-    await protocol2Contract.assignTo(accounts[1], [0], {
+    await protocol2Contract.assignTo(accounts[1], [], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[2], [0], {
+    await protocol2Contract.assignTo(accounts[2], [], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[3], [0], {
+    await protocol2Contract.assignTo(accounts[3], [], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[4], [0], {
+    await protocol2Contract.assignTo(accounts[4], [], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[5], [0], {
+    await protocol2Contract.assignTo(accounts[5], [], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[7], [0], {
+    await protocol1Contract.assignTo(accounts[7], [], {
       from: accounts[0]
     });
     daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000");
@@ -97,6 +100,33 @@ contract("Vault Test", function(accounts) {
     await pollFactory.createRemainingKillPolls();
     await crowdSale.mintFoundationTokens();
     await increaseTime(10000);
+  });
+  it("request membership", async () => {
+    result = await protocol2Contract.requestMembership([], {
+      from: accounts[25]
+    });
+    truffleAssert.eventEmitted(result, "RequestedMembership");
+    truffleAssert.eventEmitted(result, "Assigned");
+  });
+  it("request vault membership", async () => {
+    result = await protocol1Contract.requestMembership([0, 0], {
+      from: accounts[30],
+      value: await web3.utils.toWei("1", "ether").toString()
+    });
+    truffleAssert.eventEmitted(result, "RequestedMembership");
+  });
+  it("request vault membership - case 2", async () => {
+    result = await protocol1Contract.requestMembership([0, 1], {
+      from: accounts[30],
+      value: await web3.utils.toWei("1", "ether").toString()
+    });
+    truffleAssert.eventEmitted(result, "RequestedMembership");
+  });
+  it("modify fee", async () => {
+    await protocol1Contract.modifyFee(await web3.utils.toWei("0.2", "ether").toString());
+  });
+  it("modify issuer fee", async () => {
+    await protocol1Contract.modifyIssuerFee(await web3.utils.toWei("0.7", "ether").toString());
   });
   it("start round 1 : success", async () => {
     await crowdSale.startNewRound();

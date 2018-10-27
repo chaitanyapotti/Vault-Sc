@@ -5,7 +5,7 @@ var PollFactory = artifacts.require("./PollFactory.sol");
 var CrowdSale = artifacts.require("./CrowdSale.sol");
 var VaultContract = artifacts.require("./Vault.sol");
 const increaseTime = require("./utils/increaseTime");
-contract("Vault Test", function(accounts) {
+contract("Poll Factory KIll Test", function(accounts) {
   let protocol1Contract;
   let protocol2Contract;
   let daicoToken;

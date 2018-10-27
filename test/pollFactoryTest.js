@@ -9,7 +9,7 @@ var boundPoll = artifacts.require("./BoundPoll.sol");
 var unBoundPoll = artifacts.require("./UnBoundPoll.sol");
 var VaultContract = artifacts.require("./Vault.sol");
 
-contract("Vault Test", function(accounts) {
+contract("Poll Factory Test", function(accounts) {
   let protocol1Contract;
   let protocol2Contract;
   let daicoToken;
@@ -255,7 +255,7 @@ contract("Vault Test", function(accounts) {
 
     await increaseTime(10000000);
     const result = await pollFactory.canKill();
-    assert.equal(result, false);
+    assert.equal(result, 1);
     await pollFactory.executeKill();
     const currentkillPollIndex = await pollFactory.currentKillPollIndex();
     assert.equal(web3.utils.toDecimal(currentkillPollIndex), 1);
@@ -361,7 +361,7 @@ contract("Vault Test", function(accounts) {
     await tapPollInstance.vote(0, { from: accounts[3] });
     await tapPollInstance.getVoterBaseDenominator();
     const result = await pollFactory.canIncreaseTap();
-    assert.equal(result, false);
+    assert.equal(result, 1);
   });
   it("can increase tap success ", async () => {
     await increaseTime(10000);

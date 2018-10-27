@@ -3,9 +3,11 @@ var DaicoToken = artifacts.require("./DaicoToken.sol");
 var LockedTokens = artifacts.require("./LockedTokens.sol");
 var PollFactory = artifacts.require("./PollFactory.sol");
 var CrowdSale = artifacts.require("./CrowdSale.sol");
+var VaultContract = artifacts.require("./Vault.sol");
 
 async function DeployMembership(callback) {
   try {
+    let vaultContract;
     let membershipContract;
     let daicoToken;
     let lockedTokens;
@@ -43,15 +45,22 @@ async function DeployMembership(callback) {
     const pollFactoryAddress = "0x7C2eB024a140D78a77f7a0899F04322695B6bB19";
     const crowdSaleAddress = "0x1B6eCf00604845862EEd79A2298Fd3B05930AAf1";
     // deploy
-    membershipContract = await ProtocolContract.at(membershipAddress);
-
-    daicoToken = await DaicoToken.at(daicoTokenAddress);
-    lockedTokens = await LockedTokens.at(lockedTokensAddress);
-    pollFactory = await PollFactory.at(pollFactoryAddress);
-    crowdSale = await CrowdSale.at(crowdSaleAddress);
+    vaultContract = await VaultContract.at("0xAf32C5B541A5F62479Ad53531CE1a5Dbe4A73A5B");
+    // membershipContract = await ProtocolContract.at(membershipAddress);"0xcfae9a29542Ac23133c8acA28Cd342818A7a9f19"
+    // daicoToken = await DaicoToken.at(daicoTokenAddress);
+    // lockedTokens = await LockedTokens.at(lockedTokensAddress);
+    // pollFactory = await PollFactory.at(pollFactoryAddress);
+    // crowdSale = await CrowdSale.at(crowdSaleAddress);
     console.log("Deployment done");
-    await crowdSale.finalizeRoundOne();
+    // const details = await crowdSale.roundDetails(0);
+    // console.log("starttime: ", await web3.utils.toDecimal(details.startTime));
+    // console.log("endtime: ", await web3.utils.toDecimal(details.endTime));
+    // console.log(accounts[6]);
     // starts round 1
+    await vaultContract.assignTo("0xcfae9a29542Ac23133c8acA28Cd342818A7a9f19", [0, 0], {
+      from: accounts[0]
+    });
+    // await crowdSale.finalizeRoundOne();
     // await crowdSale.startNewRound();
     // buys crowdsale r1
     // await crowdSale.sendTransaction({

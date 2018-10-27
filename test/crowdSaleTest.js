@@ -8,7 +8,7 @@ const truffleAssert = require("truffle-assertions");
 var boundPoll = artifacts.require("./BoundPoll.sol");
 var VaultContract = artifacts.require("./Vault.sol");
 
-contract("Vault Test", function(accounts) {
+contract("Crowdsale Test", function(accounts) {
   let protocol1Contract;
   let protocol2Contract;
   let daicoToken;
@@ -102,21 +102,21 @@ contract("Vault Test", function(accounts) {
     await increaseTime(10000);
   });
   it("request membership", async () => {
-    result = await protocol2Contract.requestMembership([], {
+    const result = await protocol2Contract.requestMembership([], {
       from: accounts[17]
     });
     truffleAssert.eventEmitted(result, "RequestedMembership");
     truffleAssert.eventEmitted(result, "Assigned");
   });
   it("request vault membership", async () => {
-    result = await protocol1Contract.requestMembership([0, 0], {
+    const result = await protocol1Contract.requestMembership([0, 0], {
       from: accounts[13],
       value: await web3.utils.toWei("1", "ether").toString()
     });
     truffleAssert.eventEmitted(result, "RequestedMembership");
   });
   it("request vault membership - case 2", async () => {
-    result = await protocol1Contract.requestMembership([0, 1], {
+    const result = await protocol1Contract.requestMembership([0, 1], {
       from: accounts[13],
       value: await web3.utils.toWei("1", "ether").toString()
     });

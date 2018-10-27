@@ -75,7 +75,7 @@ contract PollFactory is Treasury {
 
     function executeKill() external {
         require(currentKillPoll.hasPollEnded(), "Poll hasn't ended yet");
-        if (canKill()) {
+        if (canKill() == 0) {
             state = TreasuryState.Killed;
             erc20Token.burnFrom(lockedTokenAddress, erc20Token.balanceOf(lockedTokenAddress));
             emit RefundStarted(msg.sender);
@@ -100,7 +100,7 @@ contract PollFactory is Treasury {
     }
 
     function increaseTap() external onlyOwner onlyDuringGovernance {
-        if (canIncreaseTap()) {
+        if (canIncreaseTap() == 0) {
             splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
                 pivotTime), currentTap));
             pivotTime = now;
@@ -188,14 +188,14 @@ contract PollFactory is Treasury {
         return killPollStartDate;
     }
 
-    function canIncreaseTap() public view returns (bool) {
+    function canIncreaseTap() public view returns (uint) {
         require(address(tapPoll) != address(0), "No tap poll exists yet");
 
         if (SafeMath.div(tapPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
-            tapAcceptancePercent && !canKill()) 
-            return true;
+            tapAcceptancePercent && canKill() == 1) 
+            return 0;
 
-        return false;
+        return 1;
     }
 
     function canWithdrawXfr() public view returns (uint) {
@@ -205,7 +205,7 @@ contract PollFactory is Treasury {
         BoundPoll xfrPoll2 = BoundPoll(pollData1.xfrPollAddress);
         uint returnedValue1 = 0;
         uint returnedValue2 = 0;
-        if (!canKill()) {
+        if (canKill() == 1) {
             if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
             xfrRejectionPercent && xfrPoll1.hasPollEnded()) {
                 returnedValue1 = 1;
@@ -219,16 +219,16 @@ contract PollFactory is Treasury {
         return returnedValue1 + returnedValue2;
     }
 
-    function canKill() public onlyDuringGovernance view returns (bool) {        
+    function canKill() public onlyDuringGovernance view returns (uint) {        
         if ((SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
             killAcceptancePercent) && (currentKillPoll.getVoterCount(0) > SafeMath.div(SafeMath.mul(5, 
-            totalEtherRaised), 100000000000000000000))) {return true;}
+            totalEtherRaised), 100000000000000000000))) {return 0;}
 
-        return false;
+        return 1;
     }
 
     function canWithdraw() public view returns (bool) {
-        if (canKill()) {
+        if (canKill() == 0) {
             return false;
         }
         return true;

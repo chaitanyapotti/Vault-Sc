@@ -43,24 +43,25 @@ async function DeployMembership(callback) {
     const daicoTokenAddress = "0xC78c718bB402e5ba79282A6Dfb39C63f72d986f3";
     const lockedTokensAddress = "0x6DeCE9368e2821aa51FC606B1A9d491dA0976CbF";
     const pollFactoryAddress = "0xe594712F1c6Df38a0872b7835f35cA9f9983320c";
-    const crowdSaleAddress = "0x1B6eCf00604845862EEd79A2298Fd3B05930AAf1";
+    const crowdSaleAddress = "0xA2697405848C52d9AF61eC0b655bA432eC6978Cd";
     // deploy
     // vaultContract = await ProtocolContract.at("0xAf32C5B541A5F62479Ad53531CE1a5Dbe4A73A5B");
     // membershipContract = await ProtocolContract.at(membershipAddress);"0xcfae9a29542Ac23133c8acA28Cd342818A7a9f19"
     // daicoToken = await DaicoToken.at(daicoTokenAddress);
     // lockedTokens = await LockedTokens.at(lockedTokensAddress);
-    pollFactory = await PollFactory.at(pollFactoryAddress);
-    // crowdSale = await CrowdSale.at(crowdSaleAddress);
+    // pollFactory = await PollFactory.at(pollFactoryAddress);
+    crowdSale = await CrowdSale.at(crowdSaleAddress);
     console.log("Deployment done");
-    await pollFactory.createTapIncrementPoll({ from: accounts[0] });
-    // const details = await crowdSale.roundDetails(0);
-    // console.log("starttime: ", await web3.utils.toDecimal(details.startTime));
-    // console.log("endtime: ", await web3.utils.toDecimal(details.endTime));
+    // await pollFactory.createTapIncrementPoll({ from: accounts[0] });
+    const details = await crowdSale.roundDetails(0);
+    console.log("starttime: ", await web3.utils.toDecimal(details.startTime));
+    console.log("endtime: ", await web3.utils.toDecimal(details.endTime));
     // console.log(accounts[6]);
     // // starts round 1
     // await vaultContract.assignTo("0x43CE12056AA1E8372ab4aBF0C0cC658D2d41077f", [0, 0], {
     //   from: accounts[0]
     // });
+    // await vaultContract.approveRequest("0xb758c38326Df3D75F1cf0DA14Bb8220Ca4231e74", { from: accounts[0] });
     // console.log(await vaultContract.isCurrentMember("0x32382F374Be45b4bc3269305F7B8242cb3CD437D"));
     // await crowdSale.finalizeRoundOne();
     // await crowdSale.startNewRound();

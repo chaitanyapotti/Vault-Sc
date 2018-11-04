@@ -34,6 +34,7 @@ contract PollFactory is Treasury {
 
     event RefundStarted(address _startedBy);
     event Withdraw(uint amountWei);
+    event XfrWithdraw(uint amountWei);
     event TapIncreased(uint weiAmount);
     event XfrPollCreated(address xfrAddress);
     event TapPollCreated(address tapPollAddress);
@@ -152,7 +153,7 @@ contract PollFactory is Treasury {
         }
         require(withdrawlAmount > 0, "No Withdrawable amount");
         teamAddress.transfer(withdrawlAmount);
-        emit Withdraw(withdrawlAmount);
+        emit XfrWithdraw(withdrawlAmount);
     }
 
     function onCrowdSaleR1End() external onlyCrowdSale {

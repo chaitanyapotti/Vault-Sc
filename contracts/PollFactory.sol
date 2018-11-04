@@ -115,8 +115,20 @@ contract PollFactory is Treasury {
         onlyDuringGovernance {
         uint _pollNumber = 0;
         XfrData storage pollData0 = xfrPollData[0];
+        XfrData storage pollData1 = xfrPollData[1];
+        BoundPoll xfrPoll1 = BoundPoll(pollData0.xfrPollAddress);
+        BoundPoll xfrPoll2 = BoundPoll(pollData1.xfrPollAddress);
+        if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) > 
+            xfrRejectionPercent && xfrPoll1.hasPollEnded()) {
+            pollData0.xfrPollAddress = address(0);
+            pollData0.amountRequested = 0;    
+        }
+        if (SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance()) > 
+            xfrRejectionPercent && xfrPoll2.hasPollEnded()) {
+            pollData1.xfrPollAddress = address(0);
+            pollData1.amountRequested = 0;    
+        }
         if (pollData0.xfrPollAddress != address(0)) {
-            XfrData storage pollData1 = xfrPollData[1];
             require(pollData1.xfrPollAddress == address(0), "Max 2 polls allowed at a time");
             _pollNumber = 1;
         }

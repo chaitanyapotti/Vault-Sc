@@ -15,8 +15,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     }
     
     uint public constant VERSION = 1;
-    bytes32[2] public labelKill;
-    bytes32[2] public labelTapIncrement;
+    bytes32[2] public labelDefault;
     bytes32[4] public labelXfrWithdraw;
 
     uint public initialTap; //= 14844355; //wei/sec corresponds to approx 100 ether/month
@@ -42,10 +41,8 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         lockedTokenAddress = _lockedTokenAddress;
         initialTap = _initialTap;
         tapIncrementFactor = _tapIncrementFactor;
-        labelKill[0] = 0x416c6c6f77204b696c6c00000000000000000000000000000000000000000000;//Allow kill
-        labelKill[1] = 0x446f206e6f74204b696c6c000000000000000000000000000000000000000000;//Do not Kill
-        labelTapIncrement[0] = 0x416c6c6f772054617020496e6372656d656e7400000000000000000000000000;//Allow Tap Increment
-        labelTapIncrement[1] = 0x446f206e6f7420496e6372656d656e7420546170000000000000000000000000;//Donot Increment Tap
+        labelDefault[0] = 0x416c6c6f77000000000000000000000000000000000000000000000000000000;//Allow kill
+        labelDefault[1] = 0x44656e7900000000000000000000000000000000000000000000000000000000;//Do not Kill
         labelXfrWithdraw[0] = 0x5769746864726177204e6f6e6500000000000000000000000000000000000000;//Withdraw None
         labelXfrWithdraw[1] = 0x5769746864726177204669727374207866720000000000000000000000000000;//Withdraw First Xfr
         labelXfrWithdraw[2] = 0x5769746864726177205365636f6e642058667200000000000000000000000000;//Withdraw Second Xfr
@@ -105,7 +102,7 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     }
 
     function processContribution() external payable {
-        require(state == TreasuryState.CrowdSale || state == TreasuryState.Governance);
+        require(state == TreasuryState.CrowdSale || state == TreasuryState.Governance, "Not accepting contributions");
         totalEtherRaised = SafeMath.add(totalEtherRaised, msg.value);
     }
 

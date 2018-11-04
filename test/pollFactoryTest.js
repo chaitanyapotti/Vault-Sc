@@ -496,7 +496,7 @@ contract("Poll Factory Test", function(accounts) {
     });
     await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
     await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
-    await increaseTime(3000000);
+    await increaseTime(2764800);
     const withdraw = await pollFactory.withdrawXfrAmount();
     truffleAssert.eventEmitted(withdraw, "XfrWithdraw");
   });

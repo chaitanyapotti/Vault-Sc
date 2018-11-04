@@ -10,6 +10,7 @@ contract PollFactory is Treasury {
     struct XfrData {
         address xfrPollAddress;
         uint amountRequested;
+        uint startDate;
     }
 
     uint public constant KILL_POLL_DURATION = 89 days; //seconds (89 days)
@@ -116,18 +117,14 @@ contract PollFactory is Treasury {
         uint _pollNumber = 0;
         XfrData storage pollData0 = xfrPollData[0];
         XfrData storage pollData1 = xfrPollData[1];
-        BoundPoll xfrPoll1 = BoundPoll(pollData0.xfrPollAddress);
-        BoundPoll xfrPoll2 = BoundPoll(pollData1.xfrPollAddress);
-        if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) > 
-            xfrRejectionPercent && xfrPoll1.hasPollEnded()) {
+        if (pollData0.xfrPollAddress != address(0) && now > (pollData0.startDate + 33 days)) {
             pollData0.xfrPollAddress = address(0);
-            pollData0.amountRequested = 0;    
+            pollData0.amountRequested = 0;
         }
-        if (SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance()) > 
-            xfrRejectionPercent && xfrPoll2.hasPollEnded()) {
+        if (pollData1.xfrPollAddress != address(0) && now > (pollData1.startDate + 33 days)) {
             pollData1.xfrPollAddress = address(0);
-            pollData1.amountRequested = 0;    
-        }
+            pollData1.amountRequested = 0;
+        }        
         if (pollData0.xfrPollAddress != address(0)) {
             require(pollData1.xfrPollAddress == address(0), "Max 2 polls allowed at a time");
             _pollNumber = 1;
@@ -145,6 +142,7 @@ contract PollFactory is Treasury {
         pollAddresses[xfrPoll] = true;
         pollData.xfrPollAddress = xfrPoll;
         pollData.amountRequested = _amountToWithdraw;
+        pollData.startDate = now;
         emit XfrPollCreated(xfrPoll);
     }
 
@@ -220,12 +218,12 @@ contract PollFactory is Treasury {
         uint returnedValue2 = 0;
         if (canKill() == 1) {
             if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
-            xfrRejectionPercent && xfrPoll1.hasPollEnded()) {
+            xfrRejectionPercent && xfrPoll1.hasPollEnded() && now <= (pollData.startDate + 33 days)) {
                 returnedValue1 = 1;
             }
 
             if (SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
-            xfrRejectionPercent && xfrPoll2.hasPollEnded()) {
+            xfrRejectionPercent && xfrPoll2.hasPollEnded() && now <= (pollData.startDate + 33 days)) {
                 returnedValue2 = 2;
             }
         }            

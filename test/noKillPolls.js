@@ -48,7 +48,7 @@ contract("Poll Factory KIll Test", function(accounts) {
     await protocol2Contract.assignTo(accounts[5], [0], {
       from: accounts[0]
     });
-    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000");
+    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "10");
     lockedTokens = await LockedTokens.new(daicoToken.address);
     presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
     pollFactory = await PollFactory.new(

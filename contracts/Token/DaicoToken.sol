@@ -11,14 +11,17 @@ contract DaicoToken is FreezableToken, Ownable {
     string public symbol;
     uint8 public decimals = 18;
     uint public tokensUnderGovernance;
+    uint public capTokenAmount;
     address public crowdSaleAddress;
     IERC1261 public vaultMembership;
     IPollAddresses public pollMember;
 
-    constructor(string _name, string _symbol, address _vaultAddress, uint _totalMintableSupply) public {
+    constructor(string _name, string _symbol, address _vaultAddress, uint _totalMintableSupply, 
+        uint _capPercent) public {
         name = _name;
         symbol = _symbol;
         totalMintableSupply = _totalMintableSupply;
+        capTokenAmount = SafeMath.div(SafeMath.mul(_capPercent, _totalMintableSupply), 10000);
         vaultMembership = IERC1261(_vaultAddress);
     }
 
@@ -70,7 +73,10 @@ contract DaicoToken is FreezableToken, Ownable {
     }
 
     function mint(address _to, uint256 _amount, bool _hasGovernance) public onlyCrowdSale returns (bool) {
-        if (_hasGovernance) tokensUnderGovernance += _amount;
+        if (_hasGovernance && balanceOf(_to) < capTokenAmount) {
+            tokensUnderGovernance += (SafeMath.add(balanceOf(_to), _amount) > capTokenAmount) ? 
+                SafeMath.sub(capTokenAmount, balanceOf(_to)) : _amount;
+        }
         return super.mint(_to, _amount);
     }
 
@@ -89,12 +95,26 @@ contract DaicoToken is FreezableToken, Ownable {
     }
 
     function updateGovernanceTokens(address _from, address _to, uint _value) internal {
-        if (_to == address(0)) {
-            tokensUnderGovernance += vaultMembership.isCurrentMember(_from) ? -_value : _value;
-        } else if (vaultMembership.isCurrentMember(_from) && !vaultMembership.isCurrentMember(_to)) {
-            tokensUnderGovernance -= _value;
-        } else if (!vaultMembership.isCurrentMember(_from) && vaultMembership.isCurrentMember(_to)) {
-            tokensUnderGovernance += _value;
+        if (vaultMembership.isCurrentMember(_from)) {
+            burnGovernanceTokens(_from, _value);
+        }
+        if (_to != address(0) && vaultMembership.isCurrentMember(_to)) {
+            mintGovernanceTokens(_to, _value);
+        }
+    }
+
+    function burnGovernanceTokens(address _from, uint _value) internal {
+        if (balanceOf(_from) < capTokenAmount) {
+            tokensUnderGovernance -= _value;    
+        } else if (balanceOf(_from) > capTokenAmount && SafeMath.sub(balanceOf(_from), _value) < capTokenAmount) {
+            tokensUnderGovernance -= capTokenAmount + _value - balanceOf(_from);
+        }
+    }
+
+    function mintGovernanceTokens(address _to, uint _value) internal {
+        if (balanceOf(_to) < capTokenAmount) {
+            tokensUnderGovernance += (SafeMath.add(balanceOf(_to), _value) > capTokenAmount) ? 
+                SafeMath.sub(capTokenAmount, balanceOf(_to)) : _value;
         }
     }
 }

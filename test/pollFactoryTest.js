@@ -94,7 +94,7 @@ contract("Poll Factory Test", function(accounts) {
       from: accounts[0]
     });
 
-    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000");
+    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "900");
 
     lockedTokens = await LockedTokens.new(daicoToken.address);
 
@@ -250,9 +250,6 @@ contract("Poll Factory Test", function(accounts) {
     const killPollInstance = await boundPoll.at(killPollAddress);
     await increaseTime(13500);
     await killPollInstance.vote(0, { from: accounts[1] });
-    await killPollInstance.vote(0, { from: accounts[2] });
-    await killPollInstance.vote(0, { from: accounts[3] });
-
     await increaseTime(10000000);
     const result = await pollFactory.canKill();
     assert.equal(result, 1);
@@ -357,9 +354,6 @@ contract("Poll Factory Test", function(accounts) {
     const tapPollAddress = await pollFactory.tapPoll();
     const tapPollInstance = await unBoundPoll.at(tapPollAddress);
     await tapPollInstance.vote(0, { from: accounts[1] });
-    await tapPollInstance.vote(0, { from: accounts[2] });
-    await tapPollInstance.vote(0, { from: accounts[3] });
-    await tapPollInstance.getVoterBaseDenominator();
     const result = await pollFactory.canIncreaseTap();
     assert.equal(result, 1);
   });
@@ -504,7 +498,7 @@ contract("Poll Factory Test", function(accounts) {
     await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
     await increaseTime(3000000);
     const withdraw = await pollFactory.withdrawXfrAmount();
-    truffleAssert.eventEmitted(withdraw, "Withdraw");
+    truffleAssert.eventEmitted(withdraw, "XfrWithdraw");
   });
   it("withdraw xfr amount failure : poll has not ended", async () => {
     await increaseTime(10000);

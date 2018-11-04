@@ -60,7 +60,7 @@ contract("Crowdsale Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[7], [], {
       from: accounts[0]
     });
-    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000");
+    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "10");
     lockedTokens = await LockedTokens.new(daicoToken.address);
     presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
     pollFactory = await PollFactory.new(

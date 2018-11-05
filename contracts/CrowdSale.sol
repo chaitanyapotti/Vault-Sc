@@ -2,7 +2,7 @@ pragma solidity ^0.4.25;
 
 import "./Interfaces/ILockedTokens.sol";
 import "./Interfaces/IDaicoToken.sol";
-import "electusprotocol/contracts/Protocol/IElectusProtocol.sol";
+import "membershipverificationtoken/contracts/Protocol/IERC1261.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Interfaces/ICrowdSaleTreasury.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol"; //need to check if necessary

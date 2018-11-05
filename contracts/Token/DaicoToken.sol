@@ -1,7 +1,7 @@
 pragma solidity ^0.4.25;
 
 import "electusvoting/contracts/Token/FreezableToken.sol";
-import "electusprotocol/contracts/Protocol/IElectusProtocol.sol";
+import "membershipverificationtoken/contracts/Protocol/IERC1261.sol";
 import "../Interfaces/IPollAddresses.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 

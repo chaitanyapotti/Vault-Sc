@@ -1,6 +1,6 @@
 pragma solidity ^0.4.25;
 
-import "electusprotocol/contracts/ERC1261MetaData.sol";
+import "membershipverificationtoken/contracts/ERC1261MetaData.sol";
 
 
 contract Vault is ERC1261MetaData {

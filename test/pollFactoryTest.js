@@ -696,4 +696,31 @@ contract("Poll Factory Test", function(accounts) {
     await increaseTime(100);
     await newBoundPoll.getVoterBaseDenominator();
   });
+  it("createXfr success: creates 3rd and 4th XFR after a long time", async () => {
+    await increaseTime(10000);
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await pollFactory.createXfr(await web3.utils.toWei("0.8", "ether"));
+    await increaseTime(86400 * 35);
+    await pollFactory.createXfr(await web3.utils.toWei("0.9", "ether"));
+    await pollFactory.createXfr(await web3.utils.toWei("0.6", "ether"));
+    const pollData = await pollFactory.xfrPollData(0);
+    const pollData2 = await pollFactory.xfrPollData(1);
+    const amount = pollData.amountRequested;
+    const amount2 = pollData2.amountRequested;
+    assert.equal(web3.utils.fromWei(amount), 0.9);
+    assert.equal(web3.utils.fromWei(amount2), 0.6);
+  });
 });

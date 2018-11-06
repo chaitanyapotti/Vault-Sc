@@ -5,6 +5,8 @@ var PollFactory = artifacts.require("./PollFactory.sol");
 var CrowdSale = artifacts.require("./CrowdSale.sol");
 var VaultContract = artifacts.require("./Vault.sol");
 const increaseTime = require("./utils/increaseTime");
+var boundPoll = artifacts.require("./BoundPoll.sol");
+var unBoundPoll = artifacts.require("./UnBoundPoll.sol");
 contract("Poll Factory KIll Test", function(accounts) {
   let protocol1Contract;
   let protocol2Contract;
@@ -13,9 +15,15 @@ contract("Poll Factory KIll Test", function(accounts) {
   let pollFactory;
   let crowdSale;
   let presentTime;
+  let newUnBoundPoll;
+  let newBoundPoll;
   beforeEach("setup", async () => {
     protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
-    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
+    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("Country"), [
+      web3.utils.fromAscii("India"),
+      web3.utils.fromAscii("USA"),
+      web3.utils.fromAscii("China")
+    ]);
     await protocol1Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
     });
@@ -31,8 +39,11 @@ contract("Poll Factory KIll Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[5], [0], {
       from: accounts[0]
     });
+    await protocol1Contract.assignTo(accounts[6], [1], {
+      from: accounts[0]
+    });
     protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
-    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
+    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black"), web3.utils.fromAscii("blonde")]);
     await protocol2Contract.assignTo(accounts[1], [0], {
       from: accounts[0]
     });
@@ -49,8 +60,30 @@ contract("Poll Factory KIll Test", function(accounts) {
       from: accounts[0]
     });
     daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "10");
-    lockedTokens = await LockedTokens.new(daicoToken.address);
     presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
+    newUnBoundPoll = await unBoundPoll.new(
+      [protocol2Contract.address],
+      ["0x68656c6c6f"],
+      daicoToken.address,
+      "900",
+      "0x68656c6c6f",
+      "0x776f726c64",
+      "0x776f726c64",
+      presentTime + 1,
+      0
+    );
+    newBoundPoll = await boundPoll.new(
+      [protocol2Contract.address],
+      ["0x68656c6c6f"],
+      daicoToken.address,
+      "900",
+      "0x68656c6c6f",
+      "0x776f726c64",
+      "0x776f726c64",
+      presentTime + 1,
+      1000000000
+    );
+    lockedTokens = await LockedTokens.new(daicoToken.address);
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[6],
@@ -93,5 +126,52 @@ contract("Poll Factory KIll Test", function(accounts) {
     } catch (err) {
       assert.exists(err);
     }
+  });
+  it("requests membership : Is a vault member but has wrong attributes", async () => {
+    await protocol2Contract.requestMembership([1], { from: accounts[6] });
+    const isMembershipPending = await protocol2Contract.pendingRequests(accounts[6]);
+    assert.equal(isMembershipPending, true);
+  });
+  it("get voter base denominator for unbound poll", async () => {
+    await pollFactory.createKillPolls();
+    await pollFactory.createRemainingKillPolls();
+    await increaseTime(10000);
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await increaseTime(100);
+    const tokens = web3.utils.fromWei(await newUnBoundPoll.getVoterBaseDenominator());
+    assert.equal(tokens, 30);
+  });
+  it("get voter base denominator for bound poll", async () => {
+    await pollFactory.createKillPolls();
+    await pollFactory.createRemainingKillPolls();
+    await increaseTime(10000);
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await increaseTime(100);
+    const tokens = web3.utils.fromWei(await newBoundPoll.getVoterBaseDenominator());
+    assert.equal(tokens, 30);
   });
 });

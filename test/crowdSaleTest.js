@@ -249,17 +249,17 @@ contract("Crowdsale Test", function(accounts) {
     const refund = await pollFactory.refundBySoftcapFail({ from: accounts[1] });
     truffleAssert.eventEmitted(refund, "RefundSent");
   });
-  it("finalize round one: all tokens are not sold and refund by owner", async () => {
-    await crowdSale.startNewRound();
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("5", "ether").toString(),
-      from: accounts[1]
-    });
-    await increaseTime(100000000000);
-    await crowdSale.finalizeRoundOne();
-    const refund = await pollFactory.forceRefundBySoftcapFail(accounts[1]);
-    truffleAssert.eventEmitted(refund, "RefundSent");
-  });
+  // it("finalize round one: all tokens are not sold and refund by owner", async () => {
+  //   await crowdSale.startNewRound();
+  //   await crowdSale.sendTransaction({
+  //     value: await web3.utils.toWei("5", "ether").toString(),
+  //     from: accounts[1]
+  //   });
+  //   await increaseTime(100000000000);
+  //   await crowdSale.finalizeRoundOne();
+  //   const refund = await pollFactory.forceRefundBySoftcapFail(accounts[1]);
+  //   truffleAssert.eventEmitted(refund, "RefundSent");
+  // });
   it("start new round failure : tries to start round2 after crowd sale is killed", async () => {
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({

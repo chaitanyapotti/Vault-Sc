@@ -252,7 +252,7 @@ contract("Poll Factory Test", function(accounts) {
     await killPollInstance.vote(0, { from: accounts[1] });
     await increaseTime(10000000);
     const result = await pollFactory.canKill();
-    assert.equal(result, 1);
+    assert.equal(web3.utils.toDecimal(result.code), 10);
     await pollFactory.executeKill();
     const currentkillPollIndex = await pollFactory.currentKillPollIndex();
     assert.equal(web3.utils.toDecimal(currentkillPollIndex), 1);
@@ -274,24 +274,6 @@ contract("Poll Factory Test", function(accounts) {
     });
     const result = await pollFactory.withdrawAmount("100");
     truffleAssert.eventEmitted(result, "Withdraw");
-  });
-  it("can with draw method success : returns true", async () => {
-    await increaseTime(10000);
-    await crowdSale.startNewRound();
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("3", "ether").toString(),
-      from: accounts[1]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("3", "ether").toString(),
-      from: accounts[2]
-    });
-    await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("3", "ether").toString(),
-      from: accounts[3]
-    });
-    const result = await pollFactory.canWithdraw();
-    assert.equal(result, true);
   });
   it("create tap increment poll: success", async () => {
     await increaseTime(10000);
@@ -355,7 +337,7 @@ contract("Poll Factory Test", function(accounts) {
     const tapPollInstance = await unBoundPoll.at(tapPollAddress);
     await tapPollInstance.vote(0, { from: accounts[1] });
     const result = await pollFactory.canIncreaseTap();
-    assert.equal(result, 1);
+    assert.equal(web3.utils.toDecimal(result.code), 10);
   });
   it("can increase tap success ", async () => {
     await increaseTime(10000);

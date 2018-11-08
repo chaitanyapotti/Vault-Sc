@@ -1,12 +1,11 @@
 pragma solidity ^0.4.25;
 
 import "./Interfaces/IDaicoToken.sol";
-import "./Interfaces/ICrowdSaleTreasury.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract Treasury is ICrowdSaleTreasury, Ownable {
+contract Treasury is Ownable {
     enum TreasuryState {
         CrowdSale,
         CrowdSaleRefund,
@@ -15,8 +14,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     }
     
     uint public constant VERSION = 1;
-    bytes32[2] public labelDefault;
-    bytes32[4] public labelXfrWithdraw;
 
     uint public initialTap; //= 14844355; //wei/sec corresponds to approx 100 ether/month
     uint public currentTap; //wei/sec
@@ -41,12 +38,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
         lockedTokenAddress = _lockedTokenAddress;
         initialTap = _initialTap;
         tapIncrementFactor = _tapIncrementFactor;
-        labelDefault[0] = 0x416c6c6f77000000000000000000000000000000000000000000000000000000;//Allow kill
-        labelDefault[1] = 0x44656e7900000000000000000000000000000000000000000000000000000000;//Do not Kill
-        labelXfrWithdraw[0] = 0x5769746864726177204e6f6e6500000000000000000000000000000000000000;//Withdraw None
-        labelXfrWithdraw[1] = 0x5769746864726177204669727374207866720000000000000000000000000000;//Withdraw First Xfr
-        labelXfrWithdraw[2] = 0x5769746864726177205365636f6e642058667200000000000000000000000000;//Withdraw Second Xfr
-        labelXfrWithdraw[3] = 0x576974686472617720426f746820586672000000000000000000000000000000;//Withdraw Both Xfr
     }
 
     modifier onlyCrowdSale() {
@@ -94,11 +85,6 @@ contract Treasury is ICrowdSaleTreasury, Ownable {
     function refundBySoftcapFail() external onlyDuringCrowdSaleRefund {
         //This contract address needs to be authorized to be able to burn
         refundContributor(msg.sender);
-    }
-
-    function forceRefundBySoftcapFail(address _contributor) external onlyOwner onlyDuringCrowdSaleRefund {
-        refundContributor(_contributor);
-        //This contract address needs to be authorized to be able to burn
     }
 
     function processContribution() external payable {

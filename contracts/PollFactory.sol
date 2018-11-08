@@ -33,10 +33,10 @@ contract PollFactory is Treasury {
     uint public withdrawnTillNow;
     uint public killPollsDeployed;
 
-    event RefundStarted(address _startedBy);
+    event RefundStarted(address contractAddress, uint consensus);
     event Withdraw(uint amountWei);
-    event XfrWithdraw(uint amountWei);
-    event TapIncreased(uint weiAmount);
+    event XfrWithdraw(uint amountWei, address contractAddress, uint consensus);
+    event TapIncreased(uint amountWei, address contractAddress, uint consensus);
     event XfrPollCreated(address xfrAddress);
     event TapPollCreated(address tapPollAddress);
 
@@ -77,10 +77,13 @@ contract PollFactory is Treasury {
 
     function executeKill() external {
         require(currentKillPoll.hasPollEnded(), "Poll hasn't ended yet");
-        if (canKill() == 0) {
+        uint code;
+        uint consensus;
+        (code, consensus) = canKill();
+        if (code == 11) {
             state = TreasuryState.Killed;
             erc20Token.burnFrom(lockedTokenAddress, erc20Token.balanceOf(lockedTokenAddress));
-            emit RefundStarted(msg.sender);
+            emit RefundStarted(address(currentKillPoll), consensus);
         } else {
             currentKillPollIndex += 1;
             currentKillPoll = BoundPoll(killPollAddresses[currentKillPollIndex]);
@@ -102,14 +105,16 @@ contract PollFactory is Treasury {
     }
 
     function increaseTap() external onlyOwner onlyDuringGovernance {
-        if (canIncreaseTap() == 0) {
-            splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
-                pivotTime), currentTap));
-            pivotTime = now;
-            currentTap = SafeMath.div(SafeMath.mul(tapIncrementFactor, currentTap), 100);
-            delete tapPoll;
-            emit TapIncreased(currentTap);
-        }
+        uint code;
+        uint consensus;
+        (code, consensus) = canIncreaseTap();
+        require(code == 11, "Can't increase tap now");
+        splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
+            pivotTime), currentTap));
+        pivotTime = now;
+        currentTap = SafeMath.div(SafeMath.mul(tapIncrementFactor, currentTap), 100);
+        emit TapIncreased(currentTap, address(tapPoll), consensus);
+        delete tapPoll;
     }
 
     function createXfr(uint _amountToWithdraw) external onlyOwner 
@@ -148,22 +153,27 @@ contract PollFactory is Treasury {
 
     function withdrawXfrAmount() external onlyOwner onlyDuringGovernance {
         uint withdrawlAmount = 0;
-        uint withdrawFactor = canWithdrawXfr();
+        uint code1; 
+        uint code2; 
+        uint consensus1; 
+        uint consensus2;
+        (code1, code2, consensus1, consensus2) = canWithdrawXfr();
         XfrData storage pollData1 = xfrPollData[0];
         XfrData storage pollData2 = xfrPollData[1];
-        if (withdrawFactor == 1 || withdrawFactor == 3) {
+        if (code1 == 11) {
+            emit XfrWithdraw(pollData1.amountRequested, pollData1.xfrPollAddress, consensus1);
             withdrawlAmount = SafeMath.add(withdrawlAmount, pollData1.amountRequested);  
             pollData1.xfrPollAddress = address(0);
-            pollData1.amountRequested = 0;                       
+            pollData1.amountRequested = 0;
         } 
-        if (withdrawFactor == 2 || withdrawFactor == 3) {
+        if (code2 == 11) {
+            emit XfrWithdraw(pollData2.amountRequested, pollData2.xfrPollAddress, consensus2);
             withdrawlAmount = SafeMath.add(withdrawlAmount, pollData2.amountRequested);  
             pollData2.xfrPollAddress = address(0);
             pollData2.amountRequested = 0;                    
         }
         require(withdrawlAmount > 0, "No Withdrawable amount");
         teamAddress.transfer(withdrawlAmount);
-        emit XfrWithdraw(withdrawlAmount);
     }
 
     function onCrowdSaleR1End() external onlyCrowdSale {
@@ -175,7 +185,10 @@ contract PollFactory is Treasury {
     }
 
     function withdrawAmount(uint _amount) external onlyOwner onlyDuringGovernance {
-        require(canWithdraw(), "cannot withdraw now");
+        uint code;
+        uint consensus;
+        (code, consensus) = canKill();
+        require(code == 10, "cannot withdraw now");
         require(_amount < address(this).balance, "Insufficient funds");
         splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
                 pivotTime), currentTap));
@@ -199,50 +212,49 @@ contract PollFactory is Treasury {
         return killPollStartDate;
     }
 
-    function canIncreaseTap() public view returns (uint) {
+    function canIncreaseTap() public view returns (uint code, uint consensus) {
         require(address(tapPoll) != address(0), "No tap poll exists yet");
-
-        if (SafeMath.div(tapPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
-            tapAcceptancePercent && canKill() == 1) 
-            return 0;
-
-        return 1;
+        consensus = SafeMath.div(tapPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance());
+        uint codeKill;
+        uint consensusKill;
+        (codeKill, consensusKill) = canKill();
+        if (consensus >= tapAcceptancePercent && codeKill == 10)
+            code = 11;
+        else 
+            code = 10;
     }
 
-    function canWithdrawXfr() public view returns (uint) {
+    function canWithdrawXfr() public view returns (uint code1, uint code2, uint consensus1, uint consensus2) {
         XfrData storage pollData = xfrPollData[0];
-        XfrData storage pollData1 = xfrPollData[1];
+        XfrData storage pollData1 = xfrPollData[1];        
         BoundPoll xfrPoll1 = BoundPoll(pollData.xfrPollAddress);
         BoundPoll xfrPoll2 = BoundPoll(pollData1.xfrPollAddress);
-        uint returnedValue1 = 0;
-        uint returnedValue2 = 0;
-        if (canKill() == 1) {
-            if (SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
+        code1 = 10;
+        code2 = 10;
+        uint code;
+        uint consensus;
+        (code, consensus) = canKill();
+        if (code == 10) {
+            consensus1 = SafeMath.div(xfrPoll1.getVoteTally(0), erc20Token.getTokensUnderGovernance());
+            if (consensus1 <= 
             xfrRejectionPercent && xfrPoll1.hasPollEnded() && now <= (pollData.startDate + 33 days)) {
-                returnedValue1 = 1;
+                code1 = 11;    
             }
-
-            if (SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance()) <= 
-            xfrRejectionPercent && xfrPoll2.hasPollEnded() && now <= (pollData.startDate + 33 days)) {
-                returnedValue2 = 2;
+            consensus2 = SafeMath.div(xfrPoll2.getVoteTally(0), erc20Token.getTokensUnderGovernance());
+            if (consensus2 <= 
+            xfrRejectionPercent && xfrPoll2.hasPollEnded() && now <= (pollData1.startDate + 33 days)) {
+                code2 = 11;
             }
-        }            
-        return returnedValue1 + returnedValue2;
-    }
-
-    function canKill() public onlyDuringGovernance view returns (uint) {        
-        if ((SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance()) >= 
-            killAcceptancePercent) && (currentKillPoll.getVoterCount(0) > SafeMath.div(SafeMath.mul(5, 
-            totalEtherRaised), 100000000000000000000))) {return 0;}
-
-        return 1;
-    }
-
-    function canWithdraw() public view returns (bool) {
-        if (canKill() == 0) {
-            return false;
         }
-        return true;
+    }
+
+    function canKill() public view returns (uint code, uint consensus) {
+        consensus = SafeMath.div(currentKillPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance());
+        if (consensus >= killAcceptancePercent && 
+        (currentKillPoll.getVoterCount(0) > SafeMath.div(SafeMath.mul(5, totalEtherRaised), 100000000000000000000)))
+            code = 11;
+        else 
+            code = 10;
     }
 
     function createKillPoll(uint8 index) internal {

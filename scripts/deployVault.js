@@ -24,11 +24,14 @@ async function DeployVault(callback) {
     }
     console.log("Deploy Phase Completed");
     // perform actions - Fake Assignments
-    await vaultcontract.assignTo(accounts[1], [0, 1], {
+    await vaultcontract.assignTo(accounts[0], [0, 0], {
+      from: accounts[0]
+    });
+    await vaultcontract.assignTo(accounts[1], [0, 0], {
       from: accounts[0]
     });
     for (let index = 0; index < 15; index++) {
-      await vaultcontract.assignTo(accounts[index + 2], [0, 0], {
+      await vaultcontract.assignTo(accounts[index + 2], [0, 1], {
         from: accounts[0]
       });
     }

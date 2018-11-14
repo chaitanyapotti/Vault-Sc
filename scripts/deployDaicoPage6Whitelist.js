@@ -25,7 +25,7 @@ async function DeployMembership(callback) {
     const initialFundRelease = web3.utils.toWei("0.5", "ether");
     const initialTap = "385802469136"; // wei/sec check this number (1 eth/month)
     presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
-    const r1EndTime = presentTime + 3600 * 60;
+    const r1EndTime = presentTime + 3600 * 2;
     const capPercent = "10";
     const killAcceptancePercent = "80";
     const xfrRejectionPercent = "20";
@@ -38,51 +38,38 @@ async function DeployMembership(callback) {
     const foundationAddresses = [accounts[7], accounts[8], accounts[9]];
     const foundationAmounts = ["100000000000000000000000000", "200000000000000000000000000", "200000000000000000000000000"];
     // deploy
-    membershipContract = await ProtocolContract.new(name, symbol, vaultAddress);
-    console.log("Membership Contract: ", membershipContract.address);
-    console.log("Deploy Phase Completed");
-    // perform actions - Fake Assignments
-    for (let index = 0; index < 16; index++) {
-      await membershipContract.assignTo(accounts[index + 1], [], {
-        from: accounts[0]
-      });
-    }
+    // membershipContract = await ProtocolContract.new(name, symbol, vaultAddress);
+    // console.log("Membership Contract: ", membershipContract.address);
+    // console.log("Deploy Phase Completed");
+    // // perform actions - Fake Assignments
+    // for (let index = 0; index < 16; index++) {
+    //   await membershipContract.assignTo(accounts[index + 1], [], {
+    //     from: accounts[0]
+    //   });
+    // }
 
-    daicoToken = await DaicoToken.new(stringName, stringSymbol, vaultAddress, totalMintableSupply);
+    membershipContract = await ProtocolContract.at("0x5B3bb9933845b6521EFe070B6a73eb4DA2A453fB");
+
+    // daicoToken = await DaicoToken.new(stringName, stringSymbol, vaultAddress, totalMintableSupply, capPercent);
+    daicoToken = await DaicoToken.at("0x546a2fc5dEF1b9121C9C08B4e01377CD31Ca1571");
     console.log("Daico Token Contract: ", daicoToken.address);
-    lockedTokens = await LockedTokens.new(daicoToken.address);
+    // lockedTokens = await LockedTokens.new(daicoToken.address);
+    lockedTokens = await LockedTokens.at("0xE6e8E11C4Df582B5da77E1ad1EDB79BB368F6Ff8");
     console.log("Locked Token Contract: ", lockedTokens.address);
-    pollFactory =
-      network === "development"
-        ? await PollFactory.new(
-            daicoToken.address,
-            teamAddress,
-            initialFundRelease,
-            initialTap,
-            r1EndTime,
-            membershipContract.address,
-            capPercent,
-            killAcceptancePercent,
-            xfrRejectionPercent,
-            tapAcceptancePercent,
-            lockedTokens.address,
-            tapIncrementFactor,
-            { gas: 6900000 }
-          )
-        : await PollFactory.new(
-            daicoToken.address,
-            teamAddress,
-            initialFundRelease,
-            initialTap,
-            r1EndTime,
-            membershipContract.address,
-            capPercent,
-            killAcceptancePercent,
-            xfrRejectionPercent,
-            tapAcceptancePercent,
-            lockedTokens.address,
-            tapIncrementFactor
-          );
+    pollFactory = await PollFactory.new(
+      daicoToken.address,
+      teamAddress,
+      initialFundRelease,
+      initialTap,
+      r1EndTime,
+      membershipContract.address,
+      capPercent,
+      killAcceptancePercent,
+      xfrRejectionPercent,
+      tapAcceptancePercent,
+      lockedTokens.address,
+      tapIncrementFactor
+    );
     console.log("Poll Factory Contract: ", pollFactory.address);
     crowdSale = await CrowdSale.new(
       etherMinContrib,

@@ -182,7 +182,7 @@ contract CrowdSale is Ownable {
             roundInfo.totalTokensSold = roundInfo.tokenCount;
             totalTokensToSend = leftTokens;
             weiLeft = SafeMath.sub(_amount, weiSpent);            
-            if (round != 2) {
+            if (round == 0) {
                 RoundData storage nextRoundInfo = roundDetails[round + 1];
                 uint rightTokens = SafeMath.mul(weiLeft, nextRoundInfo.tokenRate);
                 nextRoundInfo.totalTokensSold = rightTokens;
@@ -190,9 +190,7 @@ contract CrowdSale is Ownable {
                 userContrib.amount = SafeMath.add(userContrib.amount, weiLeft);
                 weiSpent = SafeMath.add(weiSpent, weiLeft);
                 totalTokensToSend = SafeMath.add(totalTokensToSend, rightTokens);
-                if (round == 0) {
-                    treasury.onCrowdSaleR1End();
-                }
+                treasury.onCrowdSaleR1End();
             } 
             currentRoundEndTime = now;
             paused = true;
@@ -202,11 +200,12 @@ contract CrowdSale is Ownable {
         userContribGlobal.amount = SafeMath.add(userContribGlobal.amount, weiSpent);
         
         processPayment(_contributor, weiSpent, totalTokensToSend);
-
-        if (round == 2 && weiLeft > 0) {
-            erc20Token.finishMinting();
-            currentRound = Round.R3Ended;
-            _contributor.transfer(weiLeft);  //address.transfer
+        if (weiLeft > 0) {
+            if (round == 2) {
+                erc20Token.finishMinting();
+                currentRound = Round.R3Ended;
+            }
+            _contributor.transfer(weiLeft); 
         }
     }
 

@@ -172,7 +172,7 @@ contract PollFactory is Treasury {
             pollData2.xfrPollAddress = address(0);
             pollData2.amountRequested = 0;                    
         }
-        require(withdrawlAmount > 0, "No Withdrawable amount");
+        require(withdrawlAmount > 0 && withdrawlAmount <= address(this).balance, "No Withdrawable amount");
         teamAddress.transfer(withdrawlAmount);
     }
 

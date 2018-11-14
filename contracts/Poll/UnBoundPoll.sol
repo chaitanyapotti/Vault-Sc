@@ -1,7 +1,7 @@
 pragma solidity ^0.4.25;
 
 import "electusvoting/contracts/poll/TokenProportionalCapped.sol";
-import "../Token/DaicoToken.sol";
+import "../Interfaces/IDaicoToken.sol";
 
 
 contract UnBoundPoll is TokenProportionalCapped {
@@ -19,7 +19,7 @@ contract UnBoundPoll is TokenProportionalCapped {
     }
 
     function getVoterBaseDenominator() public view returns (uint) {
-        DaicoToken daicoToken = DaicoToken(address(token));
+        IDaicoToken daicoToken = IDaicoToken(address(token));
         if (proposals.length <= 1) {
             return daicoToken.getTokensUnderGovernance();
         }

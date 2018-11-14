@@ -238,6 +238,36 @@ contract("Crowdsale Test", function(accounts) {
     truffleAssert.eventEmitted(result1, "LogContribution");
     truffleAssert.eventEmitted(result2, "LogContribution");
   });
+  it("wei left revert success: memeber sends extra ether in round 2", async () => {
+    await crowdSale.startNewRound();
+    const result = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[3]
+    });
+    const result1 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("4.5", "ether").toString(),
+      from: accounts[2]
+    });
+    const result2 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[1]
+    });
+    await increaseTime(100000000000);
+    await crowdSale.startNewRound();
+    const result3 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    const result4 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[2]
+    });
+    truffleAssert.eventEmitted(result, "LogContribution");
+    truffleAssert.eventEmitted(result1, "LogContribution");
+    truffleAssert.eventEmitted(result2, "LogContribution");
+    truffleAssert.eventEmitted(result3, "LogContribution");
+    truffleAssert.eventEmitted(result4, "LogContribution");
+  });
   it("finalize round one: all tokens are not sold ", async () => {
     await crowdSale.startNewRound();
     await crowdSale.sendTransaction({
@@ -283,11 +313,11 @@ contract("Crowdsale Test", function(accounts) {
       from: accounts[1]
     });
     await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("4.5", "ether").toString(),
+      value: await web3.utils.toWei("3", "ether").toString(),
       from: accounts[2]
     });
     await crowdSale.sendTransaction({
-      value: await web3.utils.toWei("2", "ether").toString(),
+      value: await web3.utils.toWei("2.5", "ether").toString(),
       from: accounts[3]
     });
     try {
@@ -798,5 +828,49 @@ contract("Crowdsale Test", function(accounts) {
     });
     await daicoToken.transfer(accounts[2], "195000000000000000000", { from: accounts[3] });
     await daicoToken.transfer(accounts[2], "10000", { from: accounts[3] });
+  });
+  it("wei left revert success: memeber sends extra ether in round 3", async () => {
+    await crowdSale.startNewRound();
+    const result = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[3]
+    });
+    const result1 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("4.5", "ether").toString(),
+      from: accounts[2]
+    });
+    const result2 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("2", "ether").toString(),
+      from: accounts[1]
+    });
+    await increaseTime(100000000000);
+    await crowdSale.startNewRound();
+    const result3 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    const result4 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3.5", "ether").toString(),
+      from: accounts[2]
+    });
+    await increaseTime(100000000000);
+    await crowdSale.startNewRound();
+    const result5 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("5", "ether").toString(),
+      from: accounts[1]
+    });
+    console.log(await web3.eth.getBalance(accounts[2]));
+    const result6 = await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("7", "ether").toString(),
+      from: accounts[2]
+    });
+    console.log(await web3.eth.getBalance(accounts[2]));
+    truffleAssert.eventEmitted(result, "LogContribution");
+    truffleAssert.eventEmitted(result1, "LogContribution");
+    truffleAssert.eventEmitted(result2, "LogContribution");
+    truffleAssert.eventEmitted(result3, "LogContribution");
+    truffleAssert.eventEmitted(result4, "LogContribution");
+    truffleAssert.eventEmitted(result5, "LogContribution");
+    truffleAssert.eventEmitted(result6, "LogContribution");
   });
 });

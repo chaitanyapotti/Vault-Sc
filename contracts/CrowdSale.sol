@@ -205,7 +205,9 @@ contract CrowdSale is Ownable {
                 erc20Token.finishMinting();
                 currentRound = Round.R3Ended;
             }
-            _contributor.transfer(weiLeft); 
+            if (round != 0) {
+                _contributor.transfer(weiLeft); 
+            }
         }
     }
 

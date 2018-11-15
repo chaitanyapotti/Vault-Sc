@@ -105,7 +105,7 @@ contract("Poll Factory Test", function(accounts) {
       "10000000000000000",
       "14844355",
       presentTime + 12960,
-      protocol2Contract.address,
+      protocol1Contract.address,
       "900",
       "75",
       "35",

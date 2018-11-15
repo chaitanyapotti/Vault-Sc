@@ -90,7 +90,7 @@ contract("Poll Factory KIll Test", function(accounts) {
       "10000000000000000",
       "14844355",
       presentTime + 129600,
-      protocol2Contract.address,
+      protocol1Contract.address,
       "10",
       "10",
       "20",

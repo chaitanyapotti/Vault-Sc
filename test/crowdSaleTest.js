@@ -69,7 +69,7 @@ contract("Crowdsale Test", function(accounts) {
       "790000000000000000",
       "14844355",
       presentTime + 12960,
-      protocol2Contract.address,
+      protocol1Contract.address,
       "10",
       "80",
       "20",

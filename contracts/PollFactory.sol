@@ -47,9 +47,9 @@ contract PollFactory is Treasury {
         _tapIncrementFactor) {
             //check for cap maybe
             // cap is 10^2 multiplied to actual percentage - already in poll
-            require(_killAcceptancePercent < 85, "Kill Acceptance should be less than 85 %");
-            require(_xfrRejectionPercent < 40, "At least 60% must accept xfr");
-            require(_tapAcceptancePercent > 60, "At least 60% must accept tap increment");
+            require(_killAcceptancePercent <= 80, "Kill Acceptance should be less than 80 %");
+            require(_xfrRejectionPercent <= 50, "At least 50% must accept xfr");
+            require(_tapAcceptancePercent >= 50, "At least 50% must accept tap increment");
             capPercent = _capPercent;
             killAcceptancePercent = _killAcceptancePercent;
             xfrRejectionPercent = _xfrRejectionPercent;

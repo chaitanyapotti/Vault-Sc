@@ -176,8 +176,8 @@ contract PollFactory is Treasury {
         teamAddress.transfer(withdrawlAmount);
     }
 
-    function onCrowdSaleR1End() external onlyCrowdSale {
-        require(initalFundRelease < SafeMath.div(address(this).balance, 10), "Can't withdraw such amount");
+    function onCrowdSaleR1End(uint _amount) external onlyCrowdSale {
+        require(initalFundRelease <= SafeMath.div((address(this).balance + _amount), 10), "Can't withdraw amount");
         state = TreasuryState.Governance;
         splineHeightAtPivot = initalFundRelease;
         pivotTime = now;

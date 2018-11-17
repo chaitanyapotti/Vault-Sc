@@ -6,7 +6,7 @@ interface ICrowdSaleTreasury {
     
     function enableCrowdsaleRefund() external;
 
-    function onCrowdSaleR1End() external;
+    function onCrowdSaleR1End(uint _amount) external;
 
     function onR1Start() external;
 

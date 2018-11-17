@@ -190,7 +190,7 @@ contract CrowdSale is Ownable {
                 userContrib.amount = SafeMath.add(userContrib.amount, weiLeft);
                 weiSpent = SafeMath.add(weiSpent, weiLeft);
                 totalTokensToSend = SafeMath.add(totalTokensToSend, rightTokens);
-                treasury.onCrowdSaleR1End();
+                treasury.onCrowdSaleR1End(_amount);
             } 
             currentRoundEndTime = now;
             paused = true;

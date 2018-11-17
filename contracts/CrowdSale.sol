@@ -155,7 +155,9 @@ contract CrowdSale is Ownable {
         uint round = uint(currentRound);        
         Contribution storage userContrib = userContributonDetails[msg.sender][round];
         uint256 currentUserContribution = SafeMath.add(msg.value, userContrib.amount);
-        if (msg.value >= etherMinContrib && (currentRound != Round.Round1 || (currentRound == Round.Round1 && 
+        RoundData storage roundInfo = roundDetails[round];
+        if ((msg.value >= etherMinContrib || SafeMath.add(msg.value, roundInfo.totalTokensSold) >= 
+            roundInfo.tokenCount) && (currentRound != Round.Round1 || (currentRound == Round.Round1 && 
             currentUserContribution <= etherMaxContrib))) {
             return true;
         }
@@ -183,15 +185,8 @@ contract CrowdSale is Ownable {
             totalTokensToSend = leftTokens;
             weiLeft = SafeMath.sub(_amount, weiSpent);            
             if (round == 0) {
-                RoundData storage nextRoundInfo = roundDetails[round + 1];
-                uint rightTokens = SafeMath.mul(weiLeft, nextRoundInfo.tokenRate);
-                nextRoundInfo.totalTokensSold = rightTokens;
-                Contribution storage userContrib = userContributonDetails[_contributor][round + 1];
-                userContrib.amount = SafeMath.add(userContrib.amount, weiLeft);
-                weiSpent = SafeMath.add(weiSpent, weiLeft);
-                totalTokensToSend = SafeMath.add(totalTokensToSend, rightTokens);
                 treasury.onCrowdSaleR1End(_amount);
-            } 
+            }
             currentRoundEndTime = now;
             paused = true;
         }
@@ -205,9 +200,7 @@ contract CrowdSale is Ownable {
                 erc20Token.finishMinting();
                 currentRound = Round.R3Ended;
             }
-            if (round != 0) {
-                _contributor.transfer(weiLeft); 
-            }
+            _contributor.transfer(weiLeft);
         }
     }
 

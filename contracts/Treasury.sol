@@ -74,7 +74,7 @@ contract Treasury is Ownable {
         state = TreasuryState.CrowdSale;
     }
 
-    function onCrowdSaleR1End() external;
+    function onCrowdSaleR1End(uint _amount) external;
 
     function enableCrowdsaleRefund() external onlyCrowdSale onlyDuringCrowdSale {
         state = TreasuryState.CrowdSaleRefund;

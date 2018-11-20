@@ -57,7 +57,7 @@ contract("Crowdsale Test", function(accounts) {
     await protocol2Contract.assignTo(accounts[5], [], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[7], [], {
+    await protocol2Contract.assignTo(accounts[7], [], {
       from: accounts[0]
     });
     daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "10");

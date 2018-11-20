@@ -38,6 +38,9 @@ contract("Crowdsale Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[6], [0, 0], {
       from: accounts[0]
     });
+    await protocol1Contract.assignTo(accounts[7], [0, 0], {
+      from: accounts[0]
+    });
     await protocol1Contract.assignTo(accounts[17], [0, 0], {
       from: accounts[0]
     });

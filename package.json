@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/chaitanyapotti/Vault-Sc#readme",
   "dependencies": {
-    "electusaction": "2.0.1",
+    "electusaction": "2.1.0",
     "truffle-hdwallet-provider": "1.0.0-web3one.0"
   },
   "devDependencies": {

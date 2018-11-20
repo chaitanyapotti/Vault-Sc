@@ -20,22 +20,22 @@ contract("Crowdsale Test", function(accounts) {
     protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("Country"), [web3.utils.fromAscii("India"), web3.utils.fromAscii("Singapore")]);
-    await protocol1Contract.assignTo(accounts[1], [0], {
+    await protocol1Contract.assignTo(accounts[1], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[2], [0], {
+    await protocol1Contract.assignTo(accounts[2], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[3], [0], {
+    await protocol1Contract.assignTo(accounts[3], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[4], [0], {
+    await protocol1Contract.assignTo(accounts[4], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[5], [0], {
+    await protocol1Contract.assignTo(accounts[5], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[6], [0], {
+    await protocol1Contract.assignTo(accounts[6], [0, 0], {
       from: accounts[0]
     });
     await protocol1Contract.assignTo(accounts[17], [0, 0], {

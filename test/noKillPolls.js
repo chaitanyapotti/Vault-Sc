@@ -19,44 +19,46 @@ contract("Poll Factory KIll Test", function(accounts) {
   let newBoundPoll;
   beforeEach("setup", async () => {
     protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
+    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("Country"), [
       web3.utils.fromAscii("India"),
       web3.utils.fromAscii("USA"),
       web3.utils.fromAscii("China")
     ]);
-    await protocol1Contract.assignTo(accounts[1], [0], {
+    await protocol1Contract.assignTo(accounts[1], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[2], [0], {
+    await protocol1Contract.assignTo(accounts[2], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[3], [0], {
+    await protocol1Contract.assignTo(accounts[3], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[4], [0], {
+    await protocol1Contract.assignTo(accounts[4], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[5], [0], {
+    await protocol1Contract.assignTo(accounts[5], [0, 0], {
       from: accounts[0]
     });
-    await protocol1Contract.assignTo(accounts[6], [1], {
+    await protocol1Contract.assignTo(accounts[6], [0, 1], {
       from: accounts[0]
     });
     protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
+    await protocol2Contract.addAttributeSet(web3.utils.fromAscii("Country"), [web3.utils.fromAscii("India"), web3.utils.fromAscii("Singapore")]);
     await protocol2Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black"), web3.utils.fromAscii("blonde")]);
-    await protocol2Contract.assignTo(accounts[1], [0], {
+    await protocol2Contract.assignTo(accounts[1], [0, 0], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[2], [0], {
+    await protocol2Contract.assignTo(accounts[2], [0, 0], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[3], [0], {
+    await protocol2Contract.assignTo(accounts[3], [0, 0], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[4], [0], {
+    await protocol2Contract.assignTo(accounts[4], [0, 0], {
       from: accounts[0]
     });
-    await protocol2Contract.assignTo(accounts[5], [0], {
+    await protocol2Contract.assignTo(accounts[5], [0, 0], {
       from: accounts[0]
     });
     daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "10");
@@ -128,7 +130,7 @@ contract("Poll Factory KIll Test", function(accounts) {
     }
   });
   it("requests membership : Is a vault member but has wrong attributes", async () => {
-    await protocol2Contract.requestMembership([1], { from: accounts[6] });
+    await protocol2Contract.requestMembership([1, 1], { from: accounts[6] });
     const isMembershipPending = await protocol2Contract.pendingRequests(accounts[6]);
     assert.equal(isMembershipPending, true);
   });

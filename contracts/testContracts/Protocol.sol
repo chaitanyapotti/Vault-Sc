@@ -16,12 +16,12 @@ contract Protocol is ERC1261MetaData {
         require(!isCurrentMember(msg.sender), "Already a member");
         require(vault.isCurrentMember(msg.sender), "Must be a vault member");
         emit RequestedMembership(msg.sender);
-        bytes32 attributeValue = vault.getAttributeByName(msg.sender, 
-        0x436f756e74727900000000000000000000000000000000000000000000000000);
+        bytes32 attributeValue = vault.getAttributeByIndex(msg.sender, 1);
         if (attributeValue
         != 0x5553410000000000000000000000000000000000000000000000000000000000 && attributeValue
         != 0x4368696e61000000000000000000000000000000000000000000000000000000) {
             _assign(msg.sender, _attributeIndexes);
+            emit Assigned(msg.sender, _attributeIndexes);
         } else {
             PendingRequest storage request = pendingRequests[msg.sender];
             request.isPending = true;

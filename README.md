@@ -1,9 +1,13 @@
 #Vault - Smart Contracts
 
 [![npm version](https://badge.fury.io/js/vault-sc.svg)](https://badge.fury.io/js/vault-sc)
+
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/ElectusProtocol/Lobby)
+
 [![CircleCI](https://circleci.com/gh/chaitanyapotti/Vault-Sc/tree/master.svg?style=shield)](https://circleci.com/gh/chaitanyapotti/Vault-Sc/tree/master)
+
 [![Greenkeeper badge](https://badges.greenkeeper.io/chaitanyapotti/Vault-Sc.svg)](https://greenkeeper.io/)
+
 [![codecov](https://codecov.io/gh/chaitanyapotti/Vault-Sc/branch/master/graph/badge.svg)](https://codecov.io/gh/chaitanyapotti/Vault-Sc)
 
 ## Install
@@ -25,7 +29,7 @@ Please refer to OpenZeppelin's github page [here](https://github.com/OpenZeppeli
 To use with Truffle, first install it and initialize your project with `truffle init`.
 
 ```sh
-npm install -g truffle@beta
+npm install -g truffle@5.0.0-beta.1
 mkdir myproject && cd myproject
 truffle init
 ```

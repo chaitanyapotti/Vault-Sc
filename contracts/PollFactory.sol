@@ -185,6 +185,10 @@ contract PollFactory is Treasury {
     }
 
     function withdrawAmount(uint _amount) external onlyOwner onlyDuringGovernance {
+        uint code;
+        uint consensus;
+        (code, consensus) = canKill();
+        require(code == 10, "cannot withdraw now");
         require(_amount < address(this).balance, "Insufficient funds");
         splineHeightAtPivot = SafeMath.add(splineHeightAtPivot, SafeMath.mul(SafeMath.sub(now, 
                 pivotTime), currentTap));

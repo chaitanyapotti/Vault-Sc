@@ -63,28 +63,6 @@ contract("Poll Factory KIll Test", function(accounts) {
     });
     daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "10");
     presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
-    newUnBoundPoll = await unBoundPoll.new(
-      [protocol2Contract.address],
-      ["0x68656c6c6f"],
-      daicoToken.address,
-      "900",
-      "0x68656c6c6f",
-      "0x776f726c64",
-      "0x776f726c64",
-      presentTime + 1,
-      0
-    );
-    newBoundPoll = await boundPoll.new(
-      [protocol2Contract.address],
-      ["0x68656c6c6f"],
-      daicoToken.address,
-      "900",
-      "0x68656c6c6f",
-      "0x776f726c64",
-      "0x776f726c64",
-      presentTime + 1,
-      1000000000
-    );
     lockedTokens = await LockedTokens.new(daicoToken.address);
     pollFactory = await PollFactory.new(
       daicoToken.address,
@@ -99,6 +77,29 @@ contract("Poll Factory KIll Test", function(accounts) {
       "65",
       lockedTokens.address,
       "150"
+    );
+    newUnBoundPoll = await unBoundPoll.new(
+      [protocol2Contract.address],
+      ["0x68656c6c6f"],
+      daicoToken.address,
+      "900",
+      "0x68656c6c6f",
+      "0x776f726c64",
+      "0x776f726c64",
+      presentTime + 1,
+      0,
+      pollFactory.address
+    );
+    newBoundPoll = await boundPoll.new(
+      [protocol2Contract.address],
+      ["0x68656c6c6f"],
+      daicoToken.address,
+      "900",
+      "0x68656c6c6f",
+      "0x776f726c64",
+      "0x776f726c64",
+      presentTime + 1,
+      1000000000
     );
     crowdSale = await CrowdSale.new(
       "2000000000000000000",

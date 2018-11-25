@@ -6,11 +6,56 @@ import "../Interfaces/IDaicoToken.sol";
 
 contract UnBoundPoll is TokenProportionalCapped {
 
+    bool public hasPollEnded;
+    address public pollFactoryAddress;
+
     constructor(address[] _protocolAddresses, bytes32[] _proposalNames, address _tokenAddress, uint _capPercent,
-    bytes32 _voterBaseLogic, bytes32 _pollName, bytes32 _pollType, uint _startTime, uint _duration) 
-        public TokenProportionalCapped(_protocolAddresses, _proposalNames, _tokenAddress, _capPercent,
-        _voterBaseLogic, _pollName, _pollType, _startTime, _duration) {
+    bytes32 _voterBaseLogic, bytes32 _pollName, bytes32 _pollType, uint _startTime, uint _duration, 
+    address _pollFactoryAddress) public TokenProportionalCapped(_protocolAddresses, _proposalNames, _tokenAddress, 
+    _capPercent, _voterBaseLogic, _pollName, _pollType, _startTime, _duration) {
+        pollFactoryAddress = _pollFactoryAddress;
+    }
+
+    function endPoll() external {
+        require(msg.sender == pollFactoryAddress, "Not enough rights");
+        hasPollEnded = true;
+    }
+
+    function vote(uint8 _proposal) external isPollStarted {
+        require(!hasPollEnded, "Poll has ended");
+        Voter storage sender = voters[msg.sender];
+        uint voteWeight = calculateVoteWeight(msg.sender);
+        //vote weight is multiplied by 100 to account for decimals
+        
+        if (canVote(msg.sender) && !sender.voted && _proposal < proposals.length) {
+            sender.voted = true;
+            sender.vote = _proposal;
+            sender.weight = voteWeight;
+            proposals[_proposal].voteWeight += sender.weight;
+            proposals[_proposal].voteCount += 1;
+            emit CastVote(msg.sender, _proposal, sender.weight);
+            //Need to check whether we can freeze or not.!
+            token.freezeAccount(msg.sender);
+        } else {
+            emit TriedToVote(msg.sender, _proposal, voteWeight);
         }
+    }
+
+    function revokeVote() external isValidVoter {
+        if (!hasPollEnded) {
+            Voter storage sender = voters[msg.sender];
+            require(sender.voted, "Hasn't yet voted.");
+            uint8 votedProposal = sender.vote;
+            uint voteWeight = sender.weight;
+            sender.voted = false;
+            proposals[sender.vote].voteWeight -= sender.weight;
+            proposals[sender.vote].voteCount -= 1;
+            sender.vote = 0;
+            sender.weight = 0;
+            emit RevokedVote(msg.sender, votedProposal, voteWeight);
+        }
+        token.unFreezeAccount(msg.sender);
+    }
 
     function canVote(address _to) public view returns (bool) {
         //this is vault address and not 1261 of treasury

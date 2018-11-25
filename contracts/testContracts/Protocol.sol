@@ -16,10 +16,8 @@ contract Protocol is ERC1261MetaData {
         require(!isCurrentMember(msg.sender), "Already a member");
         require(vault.isCurrentMember(msg.sender), "Must be a vault member");
         emit RequestedMembership(msg.sender);
-        bytes32 attributeValue = vault.getAttributeByIndex(msg.sender, 1);
-        if (attributeValue
-        != 0x5553410000000000000000000000000000000000000000000000000000000000 && attributeValue
-        != 0x4368696e61000000000000000000000000000000000000000000000000000000) {
+        uint attributeValue = vault.getAttributeByIndex(msg.sender, 1);
+        if (attributeValue != 1 && attributeValue != 2) {
             _assign(msg.sender, _attributeIndexes);
             emit Assigned(msg.sender, _attributeIndexes);
         } else {
@@ -32,5 +30,6 @@ contract Protocol is ERC1261MetaData {
     function assignTo(address _to, uint[] _attributeIndexes) external onlyOwner {
         require(vault.isCurrentMember(_to), "the _to address must already be a vault member");
         _assign(_to, _attributeIndexes);
+        emit Assigned(_to, _attributeIndexes);
     }
 }

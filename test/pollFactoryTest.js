@@ -122,7 +122,8 @@ contract("Poll Factory Test", function(accounts) {
       "0x776f726c64",
       "0x776f726c64",
       presentTime + 1,
-      0
+      0,
+      pollFactory.address
     );
     newBoundPoll = await boundPoll.new(
       [protocol2Contract.address],

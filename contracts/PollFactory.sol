@@ -98,7 +98,7 @@ contract PollFactory is Treasury {
             stringToBytes32("Vault"), 
             stringToBytes32("Tap Increment Poll"), 
             stringToBytes32("Token Proportional Capped")
-            , now + 1, 0);
+            , now + 1, 0, address(this));
         
         pollAddresses[address(tapPoll)] = true;
         emit TapPollCreated(address(tapPoll));
@@ -113,6 +113,7 @@ contract PollFactory is Treasury {
             pivotTime), currentTap));
         pivotTime = now;
         currentTap = SafeMath.div(SafeMath.mul(tapIncrementFactor, currentTap), 100);
+        tapPoll.endPoll();
         emit TapIncreased(currentTap, address(tapPoll), consensus);
         delete tapPoll;
     }

@@ -7,6 +7,8 @@ var VaultContract = artifacts.require("./Vault.sol");
 const increaseTime = require("./utils/increaseTime");
 var boundPoll = artifacts.require("./BoundPoll.sol");
 var unBoundPoll = artifacts.require("./UnBoundPoll.sol");
+const truffleAssert = require("truffle-assertions");
+
 contract("Poll Factory KIll Test", function(accounts) {
   let protocol1Contract;
   let protocol2Contract;
@@ -176,5 +178,27 @@ contract("Poll Factory KIll Test", function(accounts) {
     await increaseTime(100);
     const tokens = web3.utils.fromWei(await newBoundPoll.getVoterBaseDenominator());
     assert.equal(tokens, 30);
+  });
+
+  it("tried to vote for unbound poll", async () => {
+    await pollFactory.createKillPolls();
+    await pollFactory.createRemainingKillPolls();
+    await increaseTime(10000);
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("3", "ether").toString(),
+      from: accounts[3]
+    });
+    await increaseTime(100);
+    const result = await newUnBoundPoll.vote(0, { from: accounts[8] });
+    truffleAssert.eventEmitted(result, "TriedToVote");
   });
 });

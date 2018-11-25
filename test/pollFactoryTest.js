@@ -400,6 +400,69 @@ contract("Poll Factory Test", function(accounts) {
     const result = await pollFactory.increaseTap();
     truffleAssert.eventEmitted(result, "TapIncreased");
   });
+  it("unbound poll ended and revoke ", async () => {
+    await increaseTime(10000);
+    await crowdSale.startNewRound();
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[1]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[2]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[3]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[4]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[5]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[6]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[7]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[8]
+    });
+    await crowdSale.sendTransaction({
+      value: await web3.utils.toWei("1", "ether").toString(),
+      from: accounts[9]
+    });
+    const killPollAddress = await pollFactory.currentKillPoll();
+    const killPollInstance = await boundPoll.at(killPollAddress);
+    await increaseTime(13500);
+    await killPollInstance.vote(0, { from: accounts[1] });
+    await killPollInstance.vote(0, { from: accounts[2] });
+    await killPollInstance.vote(0, { from: accounts[3] });
+    await pollFactory.createTapIncrementPoll();
+    await increaseTime(1000);
+    const tapPollAddress = await pollFactory.tapPoll();
+    const tapPollInstance = await unBoundPoll.at(tapPollAddress);
+    await tapPollInstance.vote(0, { from: accounts[1] });
+    await tapPollInstance.vote(0, { from: accounts[2] });
+    await tapPollInstance.vote(0, { from: accounts[3] });
+    await tapPollInstance.vote(0, { from: accounts[4] });
+    await tapPollInstance.vote(0, { from: accounts[5] });
+    await tapPollInstance.vote(0, { from: accounts[6] });
+    await tapPollInstance.vote(0, { from: accounts[7] });
+    await tapPollInstance.vote(0, { from: accounts[8] });
+    const revokedResult = await tapPollInstance.revokeVote({ from: accounts[8] });
+    truffleAssert.eventEmitted(revokedResult, "RevokedVote");
+    const result = await pollFactory.increaseTap();
+    truffleAssert.eventEmitted(result, "TapIncreased");
+    await tapPollInstance.revokeVote({ from: accounts[7] });
+  });
   it("createXfr success", async () => {
     await increaseTime(10000);
     await crowdSale.startNewRound();

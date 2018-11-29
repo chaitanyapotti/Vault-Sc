@@ -24,9 +24,9 @@ contract Vault is ERC1261MetaData {
     function requestMembership(uint[] _attributeIndexes) external payable {
         require(!isCurrentMember(msg.sender), "Already a member");
         if (_attributeIndexes[1] == 0) 
-            require(msg.value > issuerFee, "Not enough fee for issuer");
+            require(msg.value >= issuerFee, "Not enough fee for issuer");
         else 
-            require(msg.value > fee, "Not enough ether sent for membership");
+            require(msg.value >= fee, "Not enough ether sent for membership");
         
         PendingRequest storage request = pendingRequests[msg.sender];
         request.isPending = true;

@@ -8,6 +8,7 @@ const truffleAssert = require("truffle-assertions");
 var boundPoll = artifacts.require("./BoundPoll.sol");
 var unBoundPoll = artifacts.require("./UnBoundPoll.sol");
 var VaultContract = artifacts.require("./Vault.sol");
+var PollDeployer = artifacts.require("./PollDeployer.sol");
 
 contract("Poll Factory Test", function(accounts) {
   let protocol1Contract;
@@ -19,6 +20,7 @@ contract("Poll Factory Test", function(accounts) {
   let presentTime;
   let newUnBoundPoll;
   let newBoundPoll;
+  let pollDeployer;
   beforeEach("setup", async () => {
     protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
     await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
@@ -97,7 +99,7 @@ contract("Poll Factory Test", function(accounts) {
     daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "900");
 
     lockedTokens = await LockedTokens.new(daicoToken.address);
-
+    pollDeployer = await PollDeployer.new();
     presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
     pollFactory = await PollFactory.new(
       daicoToken.address,
@@ -111,7 +113,8 @@ contract("Poll Factory Test", function(accounts) {
       "35",
       "65",
       lockedTokens.address,
-      "150"
+      "150",
+      pollDeployer.address
     );
     newUnBoundPoll = await unBoundPoll.new(
       [protocol2Contract.address],

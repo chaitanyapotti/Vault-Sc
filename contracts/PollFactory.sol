@@ -1,7 +1,6 @@
 pragma solidity ^0.4.25;
 
 import "./Treasury.sol";
-import "./Poll/BoundPoll.sol";
 import "./Poll/UnBoundPoll.sol";
 
 
@@ -18,10 +17,10 @@ contract PollFactory is Treasury {
     
     address[8] public killPollAddresses;
     uint public killPollStartDate;
-    address[] public vaultMembershipAddress;
+    address public vaultMembershipAddress;
     XfrData[2] public xfrPollData;
-    BoundPoll public currentKillPoll;
-    UnBoundPoll public tapPoll;
+    UnBoundPoll public currentKillPoll;
+    address public tapPoll;
     mapping(address => bool) public pollAddresses;
 
     uint public currentKillPollIndex;
@@ -42,9 +41,10 @@ contract PollFactory is Treasury {
 
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, uint _initialTap,
     uint _killPollStartDate, address _vaultMembershipAddress, uint _capPercent, uint _killAcceptancePercent,
-    uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress, uint _tapIncrementFactor) 
+    uint _xfrRejectionPercent, uint _tapAcceptancePercent, address _lockedTokenAddress, uint _tapIncrementFactor,
+    address _pollDeployer) 
         public Treasury(_erc20Token, _teamAddress, _initalFundRelease, _lockedTokenAddress, _initialTap, 
-        _tapIncrementFactor) {
+        _tapIncrementFactor, _pollDeployer) {
             //check for cap maybe
             // cap is 10^2 multiplied to actual percentage - already in poll
             require(_killAcceptancePercent <= 80, "Kill Acceptance should be less than 80 %");
@@ -54,7 +54,7 @@ contract PollFactory is Treasury {
             killAcceptancePercent = _killAcceptancePercent;
             xfrRejectionPercent = _xfrRejectionPercent;
             tapAcceptancePercent = _tapAcceptancePercent;
-            vaultMembershipAddress.push(_vaultMembershipAddress);
+            vaultMembershipAddress = _vaultMembershipAddress;
             killPollStartDate = _killPollStartDate;
             tapIncrementFactor = _tapIncrementFactor;
         }
@@ -64,7 +64,7 @@ contract PollFactory is Treasury {
         for (uint8 index = 0; index < 4; index++) {
             createKillPoll(index);
         }
-        currentKillPoll = BoundPoll(killPollAddresses[0]);
+        currentKillPoll = UnBoundPoll(killPollAddresses[0]);
         currentKillPollIndex = 0;
     }
 
@@ -86,22 +86,16 @@ contract PollFactory is Treasury {
             emit RefundStarted(address(currentKillPoll), consensus);
         } else {
             currentKillPollIndex += 1;
-            currentKillPoll = BoundPoll(killPollAddresses[currentKillPollIndex]);
+            currentKillPoll = UnBoundPoll(killPollAddresses[currentKillPollIndex]);
         }
     }
 
     function createTapIncrementPoll() external onlyOwner onlyDuringGovernance {        
-        require(address(tapPoll) == 0, "Tap Increment poll already exists");
-        bytes32[] memory proposal = new bytes32[](1);
-        proposal[0] = stringToBytes32("yes");
-        tapPoll = new UnBoundPoll(vaultMembershipAddress, proposal, erc20Token, capPercent, 
-            stringToBytes32("Vault"), 
-            stringToBytes32("Tap Increment Poll"), 
-            stringToBytes32("Token Proportional Capped")
-            , now + 1, 0, address(this));
-        
-        pollAddresses[address(tapPoll)] = true;
-        emit TapPollCreated(address(tapPoll));
+        require(tapPoll == 0, "Tap Increment poll already exists");
+        tapPoll = pollDeployer.deployUnBoundPoll(vaultMembershipAddress, "yes", erc20Token, capPercent,
+        "Vault", "Tap Increment Poll", "Token Proportional Capped", now + 1, 0, address(this));
+        pollAddresses[tapPoll] = true;
+        emit TapPollCreated(tapPoll);
     }
 
     function increaseTap() external onlyOwner onlyDuringGovernance {
@@ -113,9 +107,10 @@ contract PollFactory is Treasury {
             pivotTime), currentTap));
         pivotTime = now;
         currentTap = SafeMath.div(SafeMath.mul(tapIncrementFactor, currentTap), 100);
-        tapPoll.endPoll();
-        emit TapIncreased(currentTap, address(tapPoll), consensus);
-        delete tapPoll;
+        UnBoundPoll instance = UnBoundPoll(tapPoll);
+        instance.endPoll();
+        emit TapIncreased(currentTap, tapPoll, consensus);
+        tapPoll = address(0);
     }
 
     function createXfr(uint _amountToWithdraw) external onlyOwner 
@@ -137,14 +132,9 @@ contract PollFactory is Treasury {
         }
         require(_amountToWithdraw <= SafeMath.div(address(this).balance, 10), "Can't withdraw > 10% of balance");
         XfrData storage pollData = xfrPollData[_pollNumber];
-        bytes32[] memory proposal = new bytes32[](1);
-        proposal[0] = stringToBytes32("No");
-        address xfrPoll = new BoundPoll(vaultMembershipAddress, proposal, erc20Token, capPercent, 
-                stringToBytes32("Vault"), 
-                stringToBytes32("Exceptional Fund Request"), 
-                stringToBytes32("Token Proportional Capped Bound"),
-                now + 1, XFR_POLL_DURATION);
-
+        address xfrPoll = pollDeployer.deployBoundPoll(vaultMembershipAddress, "No", erc20Token, capPercent, "Vault", 
+        "Exceptional Fund Request", "Token Proportional Capped Bound", now + 1, XFR_POLL_DURATION);
+        
         pollAddresses[xfrPoll] = true;
         pollData.xfrPollAddress = xfrPoll;
         pollData.amountRequested = _amountToWithdraw;
@@ -201,6 +191,11 @@ contract PollFactory is Treasury {
         emit Withdraw(_amount);
     }
 
+    function kill() external onlyOwner {
+        address admin = owner();
+        selfdestruct(admin);
+    }
+
     function isPollAddress(address _address) external view returns (bool) {
         return pollAddresses[_address];
     }
@@ -214,8 +209,9 @@ contract PollFactory is Treasury {
     }
 
     function canIncreaseTap() public view returns (uint code, uint consensus) {
-        require(address(tapPoll) != address(0), "No tap poll exists yet");
-        consensus = SafeMath.div(tapPoll.getVoteTally(0), erc20Token.getTokensUnderGovernance());
+        require(tapPoll != address(0), "No tap poll exists yet");
+        UnBoundPoll instance = UnBoundPoll(tapPoll);
+        consensus = SafeMath.div(instance.getVoteTally(0), erc20Token.getTokensUnderGovernance());
         uint codeKill;
         uint consensusKill;
         (codeKill, consensusKill) = canKill();
@@ -228,8 +224,8 @@ contract PollFactory is Treasury {
     function canWithdrawXfr() public view returns (uint code1, uint code2, uint consensus1, uint consensus2) {
         XfrData storage pollData = xfrPollData[0];
         XfrData storage pollData1 = xfrPollData[1];        
-        BoundPoll xfrPoll1 = BoundPoll(pollData.xfrPollAddress);
-        BoundPoll xfrPoll2 = BoundPoll(pollData1.xfrPollAddress);
+        UnBoundPoll xfrPoll1 = UnBoundPoll(pollData.xfrPollAddress);
+        UnBoundPoll xfrPoll2 = UnBoundPoll(pollData1.xfrPollAddress);
         code1 = 10;
         code2 = 10;
         uint code;
@@ -259,23 +255,11 @@ contract PollFactory is Treasury {
     }
 
     function createKillPoll(uint8 index) internal {
-        bytes32[] memory proposal = new bytes32[](1);
-        proposal[0] = stringToBytes32("yes");
         uint startDate = killPollStartDate + index * (90 days);
-        address killPoll = new BoundPoll(vaultMembershipAddress, proposal, erc20Token, capPercent, 
-            stringToBytes32("Vault"), 
-            stringToBytes32("Kill"), 
-            stringToBytes32("Token Proportional Capped Bound"),
-            startDate, KILL_POLL_DURATION);
+        address killPoll = pollDeployer.deployBoundPoll(vaultMembershipAddress, "Yes", erc20Token, capPercent, 
+        "Vault", "Kill", "Token Proportional Capped Bound", startDate, KILL_POLL_DURATION);
         pollAddresses[killPoll] = true;
         killPollAddresses[index] = killPoll;
         killPollsDeployed += 1;
-    }
-
-    function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
-        // solhint-disable-next-line
-        assembly {
-            result := mload(add(source, 32))
-        }
     }
 }

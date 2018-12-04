@@ -16,8 +16,8 @@ contract Protocol is ERC1261MetaData {
         require(!isCurrentMember(msg.sender), "Already a member");
         require(vault.isCurrentMember(msg.sender), "Must be a vault member");
         emit RequestedMembership(msg.sender);
-        uint attributeValue = vault.getAttributeByIndex(msg.sender, 1);
-        if (attributeValue != 1 && attributeValue != 2) {
+        uint attributeValue = vault.getAttributeByIndex(msg.sender, 0);
+        if (attributeValue != 220 && attributeValue != 43 && attributeValue != 187) {
             _assign(msg.sender, _attributeIndexes);
             emit Assigned(msg.sender, _attributeIndexes);
         } else {

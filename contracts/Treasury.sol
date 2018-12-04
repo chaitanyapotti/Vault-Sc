@@ -3,6 +3,7 @@ pragma solidity ^0.4.25;
 import "./Interfaces/IDaicoToken.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./PollDeployer.sol";
 
 
 contract Treasury is Ownable {
@@ -19,6 +20,7 @@ contract Treasury is Ownable {
     uint public currentTap; //wei/sec
     TreasuryState public state;
     IDaicoToken public erc20Token;
+    PollDeployer public pollDeployer;
     address public crowdSaleAddress;
     address public teamAddress;
     uint public initalFundRelease;
@@ -31,13 +33,14 @@ contract Treasury is Ownable {
     event DaicoRefunded();
     
     constructor(address _erc20Token, address _teamAddress, uint _initalFundRelease, 
-        address _lockedTokenAddress, uint _initialTap, uint _tapIncrementFactor) public {
+        address _lockedTokenAddress, uint _initialTap, uint _tapIncrementFactor, address _pollDeployer) public {
         erc20Token = IDaicoToken(_erc20Token);
         teamAddress = _teamAddress;
         initalFundRelease = _initalFundRelease;
         lockedTokenAddress = _lockedTokenAddress;
         initialTap = _initialTap;
         tapIncrementFactor = _tapIncrementFactor;
+        pollDeployer = PollDeployer(_pollDeployer);
     }
 
     modifier onlyCrowdSale() {

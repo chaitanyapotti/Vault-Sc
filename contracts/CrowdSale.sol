@@ -156,9 +156,9 @@ contract CrowdSale is Ownable {
         Contribution storage userContrib = userContributonDetails[msg.sender][round];
         uint256 currentUserContribution = SafeMath.add(msg.value, userContrib.amount);
         RoundData storage roundInfo = roundDetails[round];
-        if ((msg.value >= etherMinContrib || SafeMath.add(msg.value, roundInfo.totalTokensSold) >= 
-            roundInfo.tokenCount) && (currentRound != Round.Round1 || (currentRound == Round.Round1 && 
-            currentUserContribution <= etherMaxContrib))) {
+        if ((msg.value >= etherMinContrib || SafeMath.add(SafeMath.mul(msg.value, roundInfo.tokenRate), 
+        roundInfo.totalTokensSold) >= roundInfo.tokenCount) && (currentRound != Round.Round1 || 
+        (currentRound == Round.Round1 && currentUserContribution <= etherMaxContrib))) {
             return true;
         }
         return false;

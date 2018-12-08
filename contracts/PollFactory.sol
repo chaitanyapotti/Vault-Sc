@@ -185,7 +185,6 @@ contract PollFactory is Treasury {
                 pivotTime), currentTap));
         require(_amount <= splineHeightAtPivot - withdrawnTillNow, "Not allowed");
         pivotTime = now;
-        splineHeightAtPivot = SafeMath.sub(splineHeightAtPivot, _amount);
         withdrawnTillNow += _amount;    
         teamAddress.transfer(_amount);
         emit Withdraw(_amount);

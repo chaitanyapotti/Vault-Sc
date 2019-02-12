@@ -29,7 +29,7 @@ Please refer to OpenZeppelin's github page [here](https://github.com/OpenZeppeli
 To use with Truffle, first install it and initialize your project with `truffle init`.
 
 ```sh
-npm install -g truffle@5.0.0-beta.1
+npm install -g truffle
 mkdir myproject && cd myproject
 truffle init
 ```

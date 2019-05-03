@@ -12,11 +12,16 @@
     "test": "npm run start:blockchain:client & sudo truffle compile --all && truffle test --network development",
     "post-test": "npm run stop:blockchain:client",
     "coverage": "touch allFiredEvents & sudo truffle compile --all & sudo ./node_modules/.bin/solidity-coverage",
-    "precommit": "lint-staged && solhint \"contracts/*.sol\"",
     "prettier": "prettier --write \"**/*.{js,json,css,md}\"",
     "eslint-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "lint:sol": "solhint contracts/**/*.sol",
     "lint:js": "eslint test/**/*.js"
+  },
+  "lint-staged": {
+    "**/*.{js,json,css,md}": [
+      "prettier --write --print-width 150",
+      "git add"
+    ]
   },
   "files": [
     "contracts",

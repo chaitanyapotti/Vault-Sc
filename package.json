@@ -18,10 +18,20 @@
     "lint:js": "eslint test/**/*.js"
   },
   "lint-staged": {
-    "**/*.{js,json,css,md}": [
-      "prettier --write --print-width 150",
+    "*.js": [
+      "eslint --fix **/*.js",
+      "prettier --write",
+      "git add"
+    ],
+    "*.sol": [
+      "prettier --write **/*.sol",
       "git add"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "files": [
     "contracts",
@@ -38,7 +48,7 @@
   },
   "homepage": "https://github.com/chaitanyapotti/Vault-Sc#readme",
   "dependencies": {
-    "electusaction": "^2.4.2",
+    "electusaction": "^2.5.0",
     "truffle-hdwallet-provider": "1.0.8"
   },
   "devDependencies": {

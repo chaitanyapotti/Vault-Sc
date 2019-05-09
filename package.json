@@ -49,7 +49,7 @@
   "homepage": "https://github.com/chaitanyapotti/Vault-Sc#readme",
   "dependencies": {
     "electusaction": "^2.5.0",
-    "truffle-hdwallet-provider": "1.0.8"
+    "truffle-hdwallet-provider": "1.0.9"
   },
   "devDependencies": {
     "solidity-coverage": "^0.5.11",

@@ -9,9 +9,9 @@
   "scripts": {
     "start:blockchain:client": "bash ./scripts/start-blockchain.sh",
     "stop:blockchain:client": "bash ./scripts/stop-blockchain.sh",
-    "test": "npm run start:blockchain:client & sudo truffle compile --all && truffle test --network development",
+    "test": "npm run start:blockchain:client & truffle compile --all && truffle migrate --reset && truffle test --network development",
     "post-test": "npm run stop:blockchain:client",
-    "coverage": "touch allFiredEvents & sudo truffle compile --all & sudo ./node_modules/.bin/solidity-coverage",
+    "coverage": "touch allFiredEvents & truffle compile --all & solidity-coverage",
     "prettier": "prettier --write \"**/*.{js,json,css,md}\"",
     "eslint-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "lint:sol": "solhint contracts/**/*.sol",
@@ -48,23 +48,25 @@
   },
   "homepage": "https://github.com/chaitanyapotti/Vault-Sc#readme",
   "dependencies": {
-    "electusaction": "^2.5.0",
-    "truffle-hdwallet-provider": "1.0.9"
+    "electusaction": "^2.5.1",
+    "truffle-hdwallet-provider": "1.0.10"
   },
   "devDependencies": {
-    "solidity-coverage": "^0.5.11",
     "eslint": "^5.16.0",
-    "eslint-config-prettier": "^4.2.0",
+    "eslint-config-prettier": "^4.3.0",
     "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.17.2",
+    "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-mocha": "^5.3.0",
-    "eslint-plugin-node": "^9.0.0",
-    "eslint-plugin-prettier": "^3.0.1",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "eslint-plugin-promise": "^4.1.1",
     "eslint-plugin-standard": "^4.0.0",
-    "lint-staged": "^8.1.6",
-    "prettier": "^1.17.0",
-    "solhint": "^2.0.0",
-    "husky": "^2.2.0"
+    "husky": "^2.4.1",
+    "lint-staged": "^8.2.1",
+    "prettier": "^1.18.2",
+    "solhint": "^2.1.0",
+    "solidity-coverage": "^0.5.11",
+    "truffle": "^5.0.22",
+    "truffle-assertions": "^0.9.1"
   }
 }

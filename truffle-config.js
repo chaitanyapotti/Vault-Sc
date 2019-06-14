@@ -1,5 +1,10 @@
 const HDWalletProvider = require("truffle-hdwallet-provider");
 
+// This is a test mnemomic and doesn't contain real ether Use it at your own risk
+const mnemonic =
+  "blue inherit drum enroll amused please camp false estate flash sell right";
+const infuraKey = "dc22c9c6245742069d5fe663bfa8a698";
+
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
@@ -7,20 +12,19 @@ module.exports = {
     development: {
       host: "127.0.0.1",
       port: 7545,
-      network_id: "*",
-      gas: 8000000 // <-- Use this high gas value
+      network_id: "*"
     },
     coverage: {
       host: "localhost",
       port: 8555, // <-- Use port 8555
       gas: 0xfffffffffff, // <-- Use this high gas value
       gasPrice: 0x01, // <-- Use this low gas price
-      network_id: "1999"
+      network_id: "*"
     },
     kovan: {
       provider: new HDWalletProvider(
-        "blue inherit drum enroll amused please camp false estate flash sell right",
-        "https://kovan.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+        mnemonic,
+        `https://kovan.infura.io/v3/${infuraKey}`,
         0,
         20
       ),
@@ -30,8 +34,8 @@ module.exports = {
     },
     rinkeby: {
       provider: new HDWalletProvider(
-        "blue inherit drum enroll amused please camp false estate flash sell right",
-        "https://rinkeby.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+        mnemonic,
+        `https://rinkeby.infura.io/v3/${infuraKey}`,
         0,
         20
       ),
@@ -41,8 +45,8 @@ module.exports = {
     },
     ropsten: {
       provider: new HDWalletProvider(
-        "blue inherit drum enroll amused please camp false estate flash sell right",
-        "https://ropsten.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+        mnemonic,
+        `https://ropsten.infura.io/v3/${infuraKey}`,
         0,
         20
       ),
@@ -52,8 +56,8 @@ module.exports = {
     },
     main: {
       provider: new HDWalletProvider(
-        "blue inherit drum enroll amused please camp false estate flash sell right",
-        "https://mainnet.infura.io/v3/dc22c9c6245742069d5fe663bfa8a698",
+        mnemonic,
+        `https://mainnet.infura.io/v3/${infuraKey}`,
         0,
         20
       ),

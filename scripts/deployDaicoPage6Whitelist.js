@@ -14,17 +14,18 @@ async function DeployMembership(callback) {
     let presentTime;
     // setup
     const accounts = await web3.eth.getAccounts();
-    const network = await web3.eth.net.getNetworkType();
-    const stringName = "Electus";
-    const stringSymbol = "ELE";
-    const totalMintableSupply = "1000000000000000000000000000"; // 1 billion
-    const name = web3.utils.fromAscii(stringName);
-    const symbol = web3.utils.fromAscii(stringSymbol);
+    // const network = await web3.eth.net.getNetworkType();
+    // const stringName = "Electus";
+    // const stringSymbol = "ELE";
+    // const totalMintableSupply = "1000000000000000000000000000"; // 1 billion
+    // const name = web3.utils.fromAscii(stringName);
+    // const symbol = web3.utils.fromAscii(stringSymbol);
     const vaultAddress = "0xAf32C5B541A5F62479Ad53531CE1a5Dbe4A73A5B";
     const teamAddress = accounts[6];
     const initialFundRelease = web3.utils.toWei("0.5", "ether");
     const initialTap = "385802469136"; // wei/sec check this number (1 eth/month)
-    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
+    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber()))
+      .timestamp;
     const r1EndTime = presentTime + 3600 * 2;
     const capPercent = "10";
     const killAcceptancePercent = "80";
@@ -33,10 +34,18 @@ async function DeployMembership(callback) {
     const tapIncrementFactor = "150";
     const etherMinContrib = web3.utils.toWei("0.01", "ether");
     const etherMaxContrib = web3.utils.toWei("1", "ether");
-    const tokenCounts = ["125000000000000000000000000", "187500000000000000000000000", "187500000000000000000000000"];
+    const tokenCounts = [
+      "125000000000000000000000000",
+      "187500000000000000000000000",
+      "187500000000000000000000000"
+    ];
     const tokenRates = ["125000000", "62500000", "31250000"];
     const foundationAddresses = [accounts[7], accounts[8], accounts[9]];
-    const foundationAmounts = ["100000000000000000000000000", "200000000000000000000000000", "200000000000000000000000000"];
+    const foundationAmounts = [
+      "100000000000000000000000000",
+      "200000000000000000000000000",
+      "200000000000000000000000000"
+    ];
     // deploy
     // membershipContract = await ProtocolContract.new(name, symbol, vaultAddress);
     // console.log("Membership Contract: ", membershipContract.address);
@@ -48,13 +57,19 @@ async function DeployMembership(callback) {
     //   });
     // }
 
-    membershipContract = await ProtocolContract.at("0x5B3bb9933845b6521EFe070B6a73eb4DA2A453fB");
+    membershipContract = await ProtocolContract.at(
+      "0x5B3bb9933845b6521EFe070B6a73eb4DA2A453fB"
+    );
 
     // daicoToken = await DaicoToken.new(stringName, stringSymbol, vaultAddress, totalMintableSupply, capPercent);
-    daicoToken = await DaicoToken.at("0x546a2fc5dEF1b9121C9C08B4e01377CD31Ca1571");
+    daicoToken = await DaicoToken.at(
+      "0x546a2fc5dEF1b9121C9C08B4e01377CD31Ca1571"
+    );
     console.log("Daico Token Contract: ", daicoToken.address);
     // lockedTokens = await LockedTokens.new(daicoToken.address);
-    lockedTokens = await LockedTokens.at("0xE6e8E11C4Df582B5da77E1ad1EDB79BB368F6Ff8");
+    lockedTokens = await LockedTokens.at(
+      "0xE6e8E11C4Df582B5da77E1ad1EDB79BB368F6Ff8"
+    );
     console.log("Locked Token Contract: ", lockedTokens.address);
     pollFactory = await PollFactory.new(
       daicoToken.address,

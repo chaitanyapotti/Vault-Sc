@@ -16,17 +16,21 @@
     "coverage": "touch allFiredEvents & truffle compile --all & solidity-coverage",
     "prettier": "prettier --write \"**/*.{js,json,css,md}\"",
     "eslint-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
-    "lint:sol": "solhint contracts/**/*.sol",
-    "lint:js": "eslint test/**/*.js"
+    "lint:sol": "prettier --write contracts/**/*.sol",
+    "lint:js": "eslint --fix test/**/*.js scripts/**/*.js"
   },
   "lint-staged": {
     "*.js": [
-      "eslint --fix **/*.js",
-      "prettier --write",
+      "npm run lint:js --",
+      "prettier --write **/*.js",
       "git add"
     ],
     "*.sol": [
-      "prettier --write **/*.sol",
+      "npm run lint:sol --",
+      "git add"
+    ],
+    "*.{json,css}": [
+      "prettier --write **/*.json",
       "git add"
     ]
   },
@@ -50,7 +54,7 @@
   },
   "homepage": "https://github.com/chaitanyapotti/Vault-Sc#readme",
   "dependencies": {
-    "electusaction": "^2.5.2",
+    "electusaction": "^2.5.3",
     "truffle-hdwallet-provider": "1.0.12"
   },
   "devDependencies": {
@@ -66,7 +70,9 @@
     "husky": "^3.0.0",
     "lint-staged": "^9.0.0",
     "prettier": "^1.18.2",
+    "prettier-plugin-solidity": "^1.0.0-alpha.26",
     "solhint": "^2.1.0",
+    "solhint-plugin-prettier": "0.0.3",
     "solidity-coverage": "^0.5.11",
     "truffle": "^5.0.25",
     "truffle-assertions": "^0.9.1"

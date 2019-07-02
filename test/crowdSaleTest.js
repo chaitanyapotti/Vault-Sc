@@ -19,19 +19,9 @@ contract("Crowdsale Test", function(accounts) {
   let presentTime;
   let pollDeployer;
   beforeEach("setup", async () => {
-    protocol1Contract = await VaultContract.new(
-      "0x57616e636861696e",
-      "0x57414e",
-      web3.utils.toWei("0.1", "ether"),
-      web3.utils.toWei("0.6", "ether")
-    );
-    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [
-      web3.utils.fromAscii("black")
-    ]);
-    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("Country"), [
-      web3.utils.fromAscii("India"),
-      web3.utils.fromAscii("Singapore")
-    ]);
+    protocol1Contract = await VaultContract.new("0x57616e636861696e", "0x57414e", web3.utils.toWei("0.1", "ether"), web3.utils.toWei("0.6", "ether"));
+    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("hair"), [web3.utils.fromAscii("black")]);
+    await protocol1Contract.addAttributeSet(web3.utils.fromAscii("Country"), [web3.utils.fromAscii("India"), web3.utils.fromAscii("Singapore")]);
     await protocol1Contract.assignTo(accounts[1], [0, 0], {
       from: accounts[0]
     });
@@ -56,11 +46,7 @@ contract("Crowdsale Test", function(accounts) {
     await protocol1Contract.assignTo(accounts[17], [0, 0], {
       from: accounts[0]
     });
-    protocol2Contract = await ElectusProtocol.new(
-      "0x55532026204368696e61",
-      "0x5543",
-      protocol1Contract.address
-    );
+    protocol2Contract = await ElectusProtocol.new("0x55532026204368696e61", "0x5543", protocol1Contract.address);
     await protocol2Contract.assignTo(accounts[1], [], {
       from: accounts[0]
     });
@@ -79,17 +65,10 @@ contract("Crowdsale Test", function(accounts) {
     await protocol2Contract.assignTo(accounts[7], [], {
       from: accounts[0]
     });
-    daicoToken = await DaicoToken.new(
-      "Electus",
-      "ELE",
-      protocol1Contract.address,
-      "10000000000000000000000",
-      "10"
-    );
+    daicoToken = await DaicoToken.new("Electus", "ELE", protocol1Contract.address, "10000000000000000000000", "10");
     lockedTokens = await LockedTokens.new(daicoToken.address);
     pollDeployer = await PollDeployer.new();
-    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber()))
-      .timestamp;
+    presentTime = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
     pollFactory = await PollFactory.new(
       daicoToken.address,
       accounts[6],
@@ -110,11 +89,7 @@ contract("Crowdsale Test", function(accounts) {
       "5000000000000000000",
       presentTime + 12960,
       presentTime,
-      [
-        "1000000000000000000000",
-        "2000000000000000000000",
-        "2000000000000000000000"
-      ],
+      ["1000000000000000000000", "2000000000000000000000", "2000000000000000000000"],
       ["100", "200", "200"],
       lockedTokens.address,
       pollFactory.address,
@@ -155,14 +130,10 @@ contract("Crowdsale Test", function(accounts) {
     truffleAssert.eventEmitted(result, "RequestedMembership");
   });
   it("modify fee", async () => {
-    await protocol1Contract.modifyFee(
-      await web3.utils.toWei("0.2", "ether").toString()
-    );
+    await protocol1Contract.modifyFee(await web3.utils.toWei("0.2", "ether").toString());
   });
   it("modify issuer fee", async () => {
-    await protocol1Contract.modifyIssuerFee(
-      await web3.utils.toWei("0.7", "ether").toString()
-    );
+    await protocol1Contract.modifyIssuerFee(await web3.utils.toWei("0.7", "ether").toString());
   });
   it("start round 1 : success", async () => {
     await crowdSale.startNewRound();
@@ -312,7 +283,7 @@ contract("Crowdsale Test", function(accounts) {
     });
     await increaseTime(100000000000);
     await crowdSale.finalizeRoundOne();
-    const refund = await pollFactory.refundBySoftcapFail({ from: accounts[1] });
+    const refund = await pollFactory.refundBySoftcapFail({from: accounts[1]});
     truffleAssert.eventEmitted(refund, "RefundSent");
   });
   // it("finalize round one: all tokens are not sold and refund by owner", async () => {
@@ -334,7 +305,7 @@ contract("Crowdsale Test", function(accounts) {
     });
     await increaseTime(100000000000);
     await crowdSale.finalizeRoundOne();
-    await pollFactory.refundBySoftcapFail({ from: accounts[1] });
+    await pollFactory.refundBySoftcapFail({from: accounts[1]});
     await increaseTime(100000);
     try {
       await crowdSale.startNewRound();
@@ -699,7 +670,7 @@ contract("Crowdsale Test", function(accounts) {
   });
   it("releases tokens success", async () => {
     await increaseTime(41536000);
-    const result = await lockedTokens.releaseTokens({ from: accounts[18] });
+    const result = await lockedTokens.releaseTokens({from: accounts[18]});
     truffleAssert.eventEmitted(result, "TokensUnlocked");
   });
   it("burn tokens", async () => {
@@ -716,7 +687,7 @@ contract("Crowdsale Test", function(accounts) {
       value: await web3.utils.toWei("2", "ether").toString(),
       from: accounts[3]
     });
-    await daicoToken.burn(10000000, { from: accounts[3] });
+    await daicoToken.burn(10000000, {from: accounts[3]});
   });
   it("transfers tokens", async () => {
     await crowdSale.startNewRound();
@@ -732,7 +703,7 @@ contract("Crowdsale Test", function(accounts) {
       value: await web3.utils.toWei("2", "ether").toString(),
       from: accounts[3]
     });
-    await daicoToken.transfer(accounts[2], 10000000, { from: accounts[3] });
+    await daicoToken.transfer(accounts[2], 10000000, {from: accounts[3]});
   });
   it("transfers tokens using transfer from method", async () => {
     await crowdSale.startNewRound();
@@ -748,7 +719,7 @@ contract("Crowdsale Test", function(accounts) {
       value: await web3.utils.toWei("2", "ether").toString(),
       from: accounts[3]
     });
-    await daicoToken.approve(accounts[2], 10000000, { from: accounts[3] });
+    await daicoToken.approve(accounts[2], 10000000, {from: accounts[3]});
     await daicoToken.transferFrom(accounts[3], accounts[2], 10000000, {
       from: accounts[2]
     });
@@ -767,7 +738,7 @@ contract("Crowdsale Test", function(accounts) {
       value: await web3.utils.toWei("2", "ether").toString(),
       from: accounts[3]
     });
-    await daicoToken.transfer(accounts[12], "10000000", { from: accounts[3] });
+    await daicoToken.transfer(accounts[12], "10000000", {from: accounts[3]});
   });
   it("a daico member revokes his vault membership and transfers tokens to another daico member", async () => {
     await crowdSale.startNewRound();
@@ -786,7 +757,7 @@ contract("Crowdsale Test", function(accounts) {
     await protocol2Contract.forfeitMembership({
       from: accounts[3]
     });
-    await daicoToken.transfer(accounts[2], 10000000, { from: accounts[3] });
+    await daicoToken.transfer(accounts[2], 10000000, {from: accounts[3]});
   });
   it("unfreeze account", async () => {
     await crowdSale.startNewRound();
@@ -805,9 +776,9 @@ contract("Crowdsale Test", function(accounts) {
     const killPollAddress = await pollFactory.currentKillPoll();
     const killPollInstance = await boundPoll.at(killPollAddress);
     await increaseTime(13500);
-    await killPollInstance.vote(0, { from: accounts[1] });
+    await killPollInstance.vote(0, {from: accounts[1]});
     await increaseTime(8000000);
-    await killPollInstance.unFreezeTokens({ from: accounts[1] });
+    await killPollInstance.unFreezeTokens({from: accounts[1]});
   });
   it("a person who is not a vault member transfers tokens to a person who is both vault & daico member", async () => {
     await crowdSale.startNewRound();
@@ -826,11 +797,10 @@ contract("Crowdsale Test", function(accounts) {
     await protocol1Contract.forfeitMembership({
       from: accounts[3]
     });
-    await daicoToken.transfer(accounts[2], "10000000", { from: accounts[3] });
+    await daicoToken.transfer(accounts[2], "10000000", {from: accounts[3]});
   });
   it(
-    "a person who is not a vault member transfers tokens to a person who is " +
-      "both vault, daico member & balance less than cap token amount",
+    "a person who is not a vault member transfers tokens to a person who is " + "both vault, daico member & balance less than cap token amount",
     async () => {
       await crowdSale.startNewRound();
       await crowdSale.sendTransaction({
@@ -851,7 +821,7 @@ contract("Crowdsale Test", function(accounts) {
       await protocol1Contract.forfeitMembership({
         from: accounts[2]
       });
-      await daicoToken.transfer(accounts[3], "10000", { from: accounts[2] });
+      await daicoToken.transfer(accounts[3], "10000", {from: accounts[2]});
     }
   );
   it("a person who is a vault member and has balance less than cap token amount transfers tokens", async () => {
@@ -871,7 +841,7 @@ contract("Crowdsale Test", function(accounts) {
     await daicoToken.transfer(accounts[2], "195000000000000000000", {
       from: accounts[3]
     });
-    await daicoToken.transfer(accounts[2], "10000", { from: accounts[3] });
+    await daicoToken.transfer(accounts[2], "10000", {from: accounts[3]});
   });
   it("wei left revert success: memeber sends extra ether in round 3", async () => {
     await crowdSale.startNewRound();

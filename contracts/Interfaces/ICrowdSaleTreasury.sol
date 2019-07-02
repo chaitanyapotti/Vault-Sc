@@ -1,9 +1,8 @@
 pragma solidity ^0.4.25;
 
-
 interface ICrowdSaleTreasury {
     function processContribution() external payable;
-    
+
     function enableCrowdsaleRefund() external;
 
     function onCrowdSaleR1End(uint _amount) external;

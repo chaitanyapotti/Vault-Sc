@@ -938,7 +938,7 @@ async function DeployVault(callback) {
     };
     // console.log(attributes.Country.findIndex(x => x === "NO"));
     // deploy
-    vaultcontract = await VaultContract.new(name, symbol, fee, issuerFee, { gas: 3000000, from: accounts[0] });
+    vaultcontract = await VaultContract.new(name, symbol, fee, issuerFee, {gas: 3000000, from: accounts[0]});
     // vaultcontract = await VaultContract.at("0x0c9b0313cf272fced1fc9034c151967e814df274");
     console.log("Vault Contract: ", vaultcontract.address);
     for (const key in attributes) {
@@ -946,7 +946,7 @@ async function DeployVault(callback) {
         const element = attributes[key];
         const attributeHeader = web3.utils.fromAscii(key);
         const mappedElements = element.map(item => web3.utils.fromAscii(item));
-        await vaultcontract.addAttributeSet(attributeHeader, mappedElements, { gas: 6300000, from: accounts[0] });
+        await vaultcontract.addAttributeSet(attributeHeader, mappedElements, {gas: 6300000, from: accounts[0]});
       }
     }
     console.log("Deploy Phase Completed");

@@ -2,14 +2,12 @@ pragma solidity ^0.4.25;
 
 import "membershipverificationtoken/contracts/ERC1261MetaData.sol";
 
-
 contract Protocol is ERC1261MetaData {
     IERC1261 public vault;
 
-    constructor(bytes32 _orgName, bytes32 _orgSymbol, address vaultAddress) 
-        public ERC1261MetaData(_orgName, _orgSymbol) {
-            vault = IERC1261(vaultAddress);
-        }
+    constructor(bytes32 _orgName, bytes32 _orgSymbol, address vaultAddress) public ERC1261MetaData(_orgName, _orgSymbol) {
+        vault = IERC1261(vaultAddress);
+    }
 
     function requestMembership(uint[] _attributeIndexes) external payable {
         //Do some checks before assigning membership

@@ -1,6 +1,5 @@
 pragma solidity ^0.4.25;
 
-
 interface IDaicoToken {
     function mint(address _to, uint256 _amount, bool _hasGovernance) external returns (bool);
 

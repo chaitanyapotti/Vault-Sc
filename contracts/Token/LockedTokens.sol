@@ -3,7 +3,6 @@ pragma solidity ^0.4.25;
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-
 contract LockedTokens is Ownable {
     struct Tokens {
         uint amount;

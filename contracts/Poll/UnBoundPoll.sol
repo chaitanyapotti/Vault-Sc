@@ -3,16 +3,35 @@ pragma solidity ^0.4.25;
 import "electusvoting/contracts/poll/TokenProportionalCapped.sol";
 import "../Interfaces/IDaicoToken.sol";
 
-
 contract UnBoundPoll is TokenProportionalCapped {
-
     bool public hasPollEnded;
     address public pollFactoryAddress;
 
-    constructor(address[] _protocolAddresses, bytes32[] _proposalNames, address _tokenAddress, uint _capPercent,
-    bytes32 _voterBaseLogic, bytes32 _pollName, bytes32 _pollType, uint _startTime, uint _duration, 
-    address _pollFactoryAddress) public TokenProportionalCapped(_protocolAddresses, _proposalNames, _tokenAddress, 
-    _capPercent, _voterBaseLogic, _pollName, _pollType, _startTime, _duration) {
+    constructor(
+        address[] _protocolAddresses,
+        bytes32[] _proposalNames,
+        address _tokenAddress,
+        uint _capPercent,
+        bytes32 _voterBaseLogic,
+        bytes32 _pollName,
+        bytes32 _pollType,
+        uint _startTime,
+        uint _duration,
+        address _pollFactoryAddress
+    )
+        public
+        TokenProportionalCapped(
+            _protocolAddresses,
+            _proposalNames,
+            _tokenAddress,
+            _capPercent,
+            _voterBaseLogic,
+            _pollName,
+            _pollType,
+            _startTime,
+            _duration
+        )
+    {
         pollFactoryAddress = _pollFactoryAddress;
     }
 
@@ -26,7 +45,7 @@ contract UnBoundPoll is TokenProportionalCapped {
         Voter storage sender = voters[msg.sender];
         uint voteWeight = calculateVoteWeight(msg.sender);
         //vote weight is multiplied by 100 to account for decimals
-        
+
         if (canVote(msg.sender) && !sender.voted && _proposal < proposals.length) {
             sender.voted = true;
             sender.vote = _proposal;

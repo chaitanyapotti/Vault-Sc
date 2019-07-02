@@ -137,7 +137,7 @@ contract("Poll Factory KIll Test", function(accounts) {
     }
   });
   it("requests membership : Is a vault member but has wrong attributes", async () => {
-    await protocol2Contract.requestMembership([1, 1], { from: accounts[6] });
+    await protocol2Contract.requestMembership([1, 1], {from: accounts[6]});
     const isMembershipPending = await protocol2Contract.pendingRequests(accounts[6]);
     assert.equal(isMembershipPending, true);
   });
@@ -202,7 +202,7 @@ contract("Poll Factory KIll Test", function(accounts) {
       from: accounts[3]
     });
     await increaseTime(100);
-    const result = await newUnBoundPoll.vote(0, { from: accounts[8] });
+    const result = await newUnBoundPoll.vote(0, {from: accounts[8]});
     truffleAssert.eventEmitted(result, "TriedToVote");
   });
 });

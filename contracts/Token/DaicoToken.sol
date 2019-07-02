@@ -5,7 +5,6 @@ import "membershipverificationtoken/contracts/Protocol/IERC1261.sol";
 import "../Interfaces/IPollAddresses.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-
 contract DaicoToken is FreezableToken, Ownable {
     string public name;
     string public symbol;
@@ -16,8 +15,7 @@ contract DaicoToken is FreezableToken, Ownable {
     IERC1261 public vaultMembership;
     IPollAddresses public pollMember;
 
-    constructor(string _name, string _symbol, address _vaultAddress, uint _totalMintableSupply, 
-        uint _capPercent) public {
+    constructor(string _name, string _symbol, address _vaultAddress, uint _totalMintableSupply, uint _capPercent) public {
         name = _name;
         symbol = _symbol;
         totalMintableSupply = _totalMintableSupply;
@@ -74,14 +72,15 @@ contract DaicoToken is FreezableToken, Ownable {
 
     function mint(address _to, uint256 _amount, bool _hasGovernance) public onlyCrowdSale returns (bool) {
         if (_hasGovernance && balanceOf(_to) < capTokenAmount) {
-            tokensUnderGovernance += (SafeMath.add(balanceOf(_to), _amount) > capTokenAmount) ? 
-                SafeMath.sub(capTokenAmount, balanceOf(_to)) : _amount;
+            tokensUnderGovernance += (SafeMath.add(balanceOf(_to), _amount) > capTokenAmount)
+                ? SafeMath.sub(capTokenAmount, balanceOf(_to))
+                : _amount;
         }
         return super.mint(_to, _amount);
     }
 
     function transfer(address _to, uint256 _value) public returns (bool success) {
-        updateGovernanceTokens(msg.sender, _to, _value);        
+        updateGovernanceTokens(msg.sender, _to, _value);
         return super.transfer(_to, _value);
     }
 
@@ -105,7 +104,7 @@ contract DaicoToken is FreezableToken, Ownable {
 
     function burnGovernanceTokens(address _from, uint _value) internal {
         if (balanceOf(_from) < capTokenAmount) {
-            tokensUnderGovernance -= _value;    
+            tokensUnderGovernance -= _value;
         } else if (balanceOf(_from) > capTokenAmount && SafeMath.sub(balanceOf(_from), _value) < capTokenAmount) {
             tokensUnderGovernance -= capTokenAmount + _value - balanceOf(_from);
         }
@@ -113,8 +112,7 @@ contract DaicoToken is FreezableToken, Ownable {
 
     function mintGovernanceTokens(address _to, uint _value) internal {
         if (balanceOf(_to) < capTokenAmount) {
-            tokensUnderGovernance += (SafeMath.add(balanceOf(_to), _value) > capTokenAmount) ? 
-                SafeMath.sub(capTokenAmount, balanceOf(_to)) : _value;
+            tokensUnderGovernance += (SafeMath.add(balanceOf(_to), _value) > capTokenAmount) ? SafeMath.sub(capTokenAmount, balanceOf(_to)) : _value;
         }
     }
 }

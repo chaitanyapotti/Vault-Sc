@@ -68,7 +68,7 @@ async function DeployMembership(callback) {
             tapAcceptancePercent,
             lockedTokens.address,
             tapIncrementFactor,
-            { gas: 6900000 }
+            {gas: 6900000}
           )
         : await PollFactory.new(
             daicoToken.address,

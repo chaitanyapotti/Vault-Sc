@@ -7,7 +7,7 @@ async function DeployPollDeployer(callback) {
     // setup
     const accounts = await web3.eth.getAccounts();
     // deploy
-    pollDeployerContract = await PollDeployerContract.new({ from: accounts[0], gas: 4000000 });
+    pollDeployerContract = await PollDeployerContract.new({from: accounts[0], gas: 4000000});
     // vaultcontract = await VaultContract.at("0x0c9b0313cf272fced1fc9034c151967e814df274");
     console.log("Poll Deployer Contract: ", pollDeployerContract.address);
     console.log("Deploy Phase Completed");

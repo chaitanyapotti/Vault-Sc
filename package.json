@@ -1,6 +1,6 @@
 {
   "name": "vault-sc",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Smart Contracts for Vault",
   "main": "truffle-config.js",
   "directories": {

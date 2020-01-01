@@ -13,7 +13,7 @@
     "test": "truffle migrate --reset --compile-all && truffle test --network development",
     "posttest": "npm run stop:blockchain:client",
     "precommit": "lint-staged && solhint \"contracts/*.sol\"",
-    "coverage": "touch allFiredEvents & truffle compile --all & solidity-coverage",
+    "coverage": "truffle run coverage",
     "prettier": "prettier --write \"**/*.{js,json,css,md}\"",
     "eslint-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "lint:sol": "prettier --write contracts/**/*.sol",
